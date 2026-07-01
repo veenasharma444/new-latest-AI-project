@@ -1,647 +1,337 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { authApi } from "../api/client";
-import './login.css'
-import { LuDollarSign, LuShieldCheck, LuTvMinimal } from "react-icons/lu";
-import { FaBolt } from "react-icons/fa";
-import { HiOutlineBolt } from "react-icons/hi2";
-import onexLogo from "../images/Onex-logo.png";
-
-export default function UserLogin() {
-  const navigate = useNavigate();
-
-  const [username, setUsername] =
-    useState("");
-
-  const [password, setPassword] =
-    useState("");
-  const [companies, setCompanies] =
-    useState<any[]>([]);
-
-  const [selectedCompany, setSelectedCompany] =
-    useState("");
-
-  const handleLogin = async () => {
-
-    try {
-
-      // const data =
-      //   await authApi.login(
-      //     username,
-      //     password
-      //   );
-
-      // if (data.companies.length === 1) {
-
-      //   localStorage.setItem(
-      //     "user",
-      //     JSON.stringify({
-      //       ...data,
-      //       selected_company:
-      //         data.companies[0]
-      //     })
-      //   );
-
-      //   localStorage.setItem(
-      //     "company_id",
-      //     String(data.companies[0].company_id)
-      //   );
-
-      //   navigate("/");
-
-      // } else {
-
-      //   setCompanies(
-      //     data.companies
-      //   );
-
-      //   localStorage.setItem(
-      //     "login_user",
-      //     JSON.stringify(data)
-      //   );
-
-      // }
-
-      const data =
-        await authApi.login(
-          username,
-          password
-        );
-
-      /* ADMIN LOGIN */
-
-      if (data.role_id === 1) {
-
-        localStorage.setItem(
-          "user",
-          JSON.stringify(data)
-        );
-
-        // navigate("/admin/dashboard", {replace:true});
-        // window.location.href = "/admin/dashboard", {replace:true};
-        window.location.replace("/admin/dashboard");
-
-        return;
-      }
-
-      /* USER LOGIN */
-
-      if (data.companies.length === 1) {
-
-        localStorage.setItem(
-          "user",
-          JSON.stringify({
-            ...data,
-            selected_company:
-              data.companies[0]
-          })
-        );
-
-        localStorage.setItem(
-          "company_id",
-          String(data.companies[0].company_id)
-        );
-
-        // navigate("/dashboard", {replace:true});
-        // window.location.href = "/dashboard", {replace:true};
-        window.location.replace("/dashboard");
-
-      } else {
-
-        setCompanies(
-          data.companies
-        );
-
-        localStorage.setItem(
-          "login_user",
-          JSON.stringify(data)
-        );
-
-      }
-
-    } catch {
-
-      alert(
-        "Invalid Credentials"
-      );
-
-    }
-
-  };
-
-  const handleCompanySelect = () => {
-
-    if (!selectedCompany) {
-      alert("Please select a company");
-      return;
-    }
-
-    const loginUser =
-      JSON.parse(
-        localStorage.getItem(
-          "login_user"
-        ) || "{}"
-      );
-
-    const company =
-      companies.find(
-        c =>
-          c.company_id ==
-          Number(selectedCompany)
-      );
-    console.log("Selected company:", company);
-
-    localStorage.setItem(
-      "user",
-      JSON.stringify({
-        ...loginUser,
-        selected_company:
-          company
-      })
-    );
-
-    localStorage.setItem(
-      "company_id",
-      String(company.company_id)
-    );
-
-    // window.location.href = "/dashboard";
-    // navigate("/dashboard", {replace:true});
-    // window.location.href = "/dashboard", {replace:true};
-    window.location.replace("/dashboard");
-
-  };
-
-
-  //   return (
-
-  //     <div className="max-w-md mx-auto mt-20">
-
-  //       <div className="card p-6">
-
-  //         <h1 className="text-2xl font-bold mb-6 text-center mb-6">
-  //           APCheck Login
-  //         </h1>
-
-  //         <input
-  //           placeholder="Username"
-  //           value={username}
-  //           onChange={(e) =>
-  //             setUsername(e.target.value)
-  //           }
-  //           className="w-full border p-3 mb-4"
-  //         />
-
-  //         <input
-  //           type="password"
-  //           placeholder="Password"
-  //           value={password}
-  //           onChange={(e) =>
-  //             setPassword(e.target.value)
-  //           }
-  //           className="w-full border p-3 mb-4"
-  //         />
-
-  //         {/* <button
-  //           onClick={handleLogin}
-  //           className="btn-primary w-full"
-  //         >
-  //           Login
-  //         </button> */}
-  //         <button
-  //           onClick={
-  //             companies.length > 1
-  //               ? handleCompanySelect
-  //               : handleLogin
-  //           }
-  //           className="btn-primary w-full"
-  //         >
-  //           Login
-  //         </button>
-  //         {companies.length > 1 && (
-
-  //               <>
-
-  //                 <select
-  //                   value={selectedCompany}
-  //                   onChange={(e) =>
-  //                     setSelectedCompany(
-  //                       e.target.value
-  //                     )
-  //                   }
-  //                   className="w-full border p-3 mt-4"
-  //                 >
-
-  //                   <option value="">
-  //                     Select Company
-  //                   </option>
-
-  //                   {companies.map(company => (
-
-  //                     <option
-  //                       key={company.company_id}
-  //                       value={company.company_id}
-  //                     >
-  //                       {company.company_name}
-  //                     </option>
-
-  //                   ))}
-
-  //                 </select>
-
-  //                 {/* <button
-  //                   onClick={handleCompanySelect}
-  //                   className="btn-primary w-full mt-3"
-  //                 >
-  //                   Continue
-  //                 </button> */}
-
-  //               </>
-
-  //             )}
-
-  //       </div>
-
-  //     </div>
-
-  //   );
-  // }
-
-  // return (
-
-
-
-  //   <div className="max-w-md mx-auto mt-20">
-
-  //     <div className="card p-6">
-
-  //       <h1 className="text-2xl font-bold text-center mb-6">
-  //         APCheck Login
-  //       </h1>
-
-  //       <input
-  //         placeholder="Username"
-  //         value={username}
-  //         onChange={(e) =>
-  //           setUsername(e.target.value)
-  //         }
-  //         className="w-full border p-3 mb-4"
-  //       />
-
-  //       <input
-  //         type="password"
-  //         placeholder="Password"
-  //         value={password}
-  //         onChange={(e) =>
-  //           setPassword(e.target.value)
-  //         }
-  //         className="w-full border p-3 mb-4"
-  //       />
-
-  //       {companies.length > 1 && (
-
-  //         <select
-  //           value={selectedCompany}
-  //           onChange={(e) =>
-  //             setSelectedCompany(
-  //               e.target.value
-  //             )
-  //           }
-  //           className="w-full border p-3 mb-4"
-  //         >
-
-  //           <option value="">
-  //             Select Company
-  //           </option>
-
-  //           {companies.map(company => (
-
-  //             <option
-  //               key={company.company_id}
-  //               value={company.company_id}
-  //             >
-  //               {company.company_name}
-  //             </option>
-
-  //           ))}
-
-  //         </select>
-
-  //       )}
-
-  //       <button
-  //         onClick={
-  //           companies.length > 1
-  //             ? handleCompanySelect
-  //             : handleLogin
-  //         }
-  //         className="btn-primary w-full"
-  //       >
-  //         Login
-  //       </button>
-
-  //     </div>
-
-  //   </div>
-
-  // );
-
-  return (
-    // <div className="min-h-screen grid md:grid-cols-2">
-
-    //   {/* LEFT SIDE */}
-    //   <div className="hidden md:flex flex-col justify-between bg-gradient-to-br from-indigo-900 to-purple-700 text-white p-10">
-
-    //     <div>
-    //       <h1 className="text-xl font-semibold mb-8">APCheck</h1>
-
-    //       <h2 className="text-4xl font-bold leading-tight mb-6">
-    //         Invoice review,
-    //         <br />
-    //         without the headache.
-    //       </h2>
-
-    //       <p className="text-sm text-indigo-100 max-w-sm">
-    //         Leverage enterprise-grade AI to eliminate duplicate payments,
-    //         detect fraud, and automate your entire accounts payable workflow.
-    //       </p>
-    //     </div>
-
-    //     <div className="grid grid-cols-2 gap-4 mt-10">
-    //       <div className="bg-white/10 p-4 rounded-lg">
-    //         <p className="text-lg font-bold">99%</p>
-    //         <p className="text-xs text-indigo-200">Detection Accuracy</p>
-    //       </div>
-
-    //       <div className="bg-white/10 p-4 rounded-lg">
-    //         <p className="text-lg font-bold">3x</p>
-    //         <p className="text-xs text-indigo-200">Faster Processing</p>
-    //       </div>
-
-    //       <div className="bg-white/10 p-4 rounded-lg">
-    //         <p className="text-lg font-bold">$0</p>
-    //         <p className="text-xs text-indigo-200">Duplicate Payments</p>
-    //       </div>
-
-    //       <div className="bg-white/10 p-4 rounded-lg">
-    //         <p className="text-lg font-bold">24/7</p>
-    //         <p className="text-xs text-indigo-200">Continuous Monitoring</p>
-    //       </div>
-    //     </div>
-
-    //     <div className="mt-8 text-xs text-green-300">
-    //       ● System Online - All Services Running
-    //     </div>
-    //   </div>
-
-    //   {/* RIGHT SIDE */}
-    //   <div className="flex items-center justify-center bg-gray-50 p-6">
-
-    //     <div className="w-full max-w-md bg-white p-8 rounded-xl shadow">
-
-    //       <h2 className="text-2xl font-bold text-center mb-2">
-    //         Welcome back
-    //       </h2>
-
-    //       <p className="text-center text-gray-500 text-sm mb-6">
-    //         Sign in to continue to APCheck
-    //       </p>
-
-    //       {/* Username */}
-    //       <input
-    //         placeholder="Email Address"
-    //         value={username}
-    //         onChange={(e) => setUsername(e.target.value)}
-    //         className="w-full border rounded-lg p-3 mb-4 focus:ring-2 focus:ring-indigo-500 outline-none"
-    //       />
-
-    //       {/* Password */}
-    //       <input
-    //         type="password"
-    //         placeholder="Password"
-    //         value={password}
-    //         onChange={(e) => setPassword(e.target.value)}
-    //         className="w-full border rounded-lg p-3 mb-4 focus:ring-2 focus:ring-indigo-500 outline-none"
-    //       />
-
-    //       {/* Company dropdown */}
-    //       {companies.length > 1 && (
-    //         <select
-    //           value={selectedCompany}
-    //           onChange={(e) => setSelectedCompany(e.target.value)}
-    //           className="w-full border rounded-lg p-3 mb-4 focus:ring-2 focus:ring-indigo-500 outline-none"
-    //         >
-    //           <option value="">Select Company</option>
-    //           {companies.map((company) => (
-    //             <option
-    //               key={company.company_id}
-    //               value={company.company_id}
-    //             >
-    //               {company.company_name}
-    //             </option>
-    //           ))}
-    //         </select>
-    //       )}
-
-    //       {/* Login Button */}
-    //       <button
-    //         onClick={
-    //           companies.length > 1
-    //             ? handleCompanySelect
-    //             : handleLogin
-    //         }
-    //         className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-lg font-medium shadow"
-    //       >
-    //         Sign in
-    //       </button>
-
-    //       {/* Admin login (optional UI element) */}
-    //       <div className="mt-4 text-center">
-    //         <button
-    //           onClick={() => navigate("/admin/login")}
-    //           className="text-sm text-gray-600 hover:text-indigo-600"
-    //         >
-    //           Admin Login →
-    //         </button>
-    //       </div>
-    //     </div>
-
-    //   </div>
-    // </div>
-    <div className="login-container">
-
-      {/* LEFT SIDE */}
-      <div className="login-left">
-
-        <div>
-          <h1 className="login-title"> <span className="title-icon"><LuShieldCheck /> </span> APCheck</h1>
-
-          <h2 className="login-heading">
-            Invoice review,
-            <br />
-            without the headache.
-          </h2>
-
-          <p className="login-desc">
-            Leverage enterprise-grade AI to eliminate duplicate payments,
-            detect fraud, and automate your entire accounts payable workflow.
-          </p>
-        </div>
-
-        <div className="login-stats">
-          <div className="login-stat-card">
-            <p className="login-stat-icon"><LuShieldCheck /></p>
-            <p className="login-stat-value">99%</p>
-            <p className="login-stat-label">Detection Accuracy</p>
-          </div>
-
-          <div className="login-stat-card">
-            <p className="login-stat-icon"><HiOutlineBolt /></p>
-            <p className="login-stat-value">3x</p>
-            <p className="login-stat-label">Faster Processing</p>
-          </div>
-
-          <div className="login-stat-card">
-            <p className="login-stat-icon"><LuDollarSign /></p>
-            <p className="login-stat-value">$0</p>
-            <p className="login-stat-label">Duplicate Payments</p>
-          </div>
-
-          <div className="login-stat-card">
-            <p className="login-stat-icon"><LuTvMinimal /></p>
-            <p className="login-stat-value">24/7</p>
-            <p className="login-stat-label">Continuous Monitoring</p>
-          </div>
-        </div>
-
-        <div className="login-status">
-          <span className="login-status-text">● System Online - All Services Running</span>
-        </div>
-      </div>
-
-      {/* RIGHT SIDE */}
-      <div className="login-right">
-        <div className="login-help"><span className="need-help">Need help?</span></div>
-        <div className="login-div">
-
+"""
+Dedicated Authentication Page
+Enhanced login and signup with separate flows
+Full-screen page with no navbar visible during auth
+Authentication Page (Updated with Role Support)
+"""
+
+import dash_bootstrap_components as dbc
+from dash import html, dcc, Input, Output, State, callback
+from core.config import NAVY, GOLD, PRIMARY_BG, CARD_BG, TEXT, TEXT_LIGHT, BORDER, PRIMARY
+from core.db_connector import get_session
+from core.app_db import Role
+
+
+def generate_auth_page():
+    """Generate a beautiful full-screen standalone authentication page"""
+    
+    return html.Div([
+        # Full-screen auth page (no navbar)
+        html.Div([
+            dbc.Row([
+                # Left Side - Branding & Features
+                dbc.Col([
+                    html.Div([
+                        # Logo
+                        html.Div([
+                            html.Div("◆", style={'fontSize': '56px', 'color': GOLD, 'marginBottom': '15px'}),
+                            html.H1("ONEX AI", style={
+                                'color': '#FFFFFF', 'fontWeight': '800', 
+                                'marginBottom': '4px', 'fontSize': '42px', 'letterSpacing': '2px'
+                            }),
+                            html.P("Data Insight Platform", style={
+                                'color': GOLD, 'fontSize': '16px', 'fontWeight': '600', 
+                                'margin': '0', 'letterSpacing': '1px'
+                            }),
+                        ], style={'textAlign': 'center', 'marginBottom': '60px'}),
+                        
+                        # Features List
+                        html.Div([
+                            html.H3("Intelligent Analytics", style={
+                                'color': '#FFFFFF', 'fontWeight': '700', 
+                                'marginBottom': '24px', 'fontSize': '24px'
+                            }),
+                            *[
+                                html.Div([
+                                    html.Div("✓", style={
+                                        'color': GOLD, 'fontWeight': '800', 'fontSize': '20px',
+                                        'marginRight': '16px', 'width': '24px'
+                                    }),
+                                    html.Div(feature, style={
+                                        'color': TEXT_LIGHT, 'fontSize': '15px', 
+                                        'fontWeight': '500', 'lineHeight': '1.6'
+                                    }),
+                                ], style={'display': 'flex', 'alignItems': 'flex-start', 'marginBottom': '18px'})
+                                for feature in [
+                                    "Auto-detect data patterns in seconds",
+                                    "Generate insightful dashboards automatically",
+                                    "Connect multiple data sources seamlessly",
+                                    "AI-powered insights and recommendations",
+                                    "Real-time data analysis and monitoring",
+                                ]
+                            ],
+                        ], style={'marginTop': '40px'}),
+                        
+                    ], style={
+                        'backgroundColor': NAVY,
+                        'padding': '60px 50px',
+                        'minHeight': '100vh',
+                        'display': 'flex',
+                        'flexDirection': 'column',
+                        'justifyContent': 'center',
+                        'color': '#FFFFFF',
+                    }),
+                ], xs=12, md=6, style={'padding': '0'}),
+                
+                # Right Side - Form
+                dbc.Col([
+                    html.Div([
+                        # Tab Selection
+                        dbc.Row([
+                            dbc.Col([
+                                html.Button(
+                                    "Sign In",
+                                    id='auth-btn-signin-tab',
+                                    n_clicks=1,
+                                    style={
+                                        'background': 'none',
+                                        'border': 'none',
+                                        'fontSize': '18px',
+                                        'fontWeight': '700',
+                                        'color': NAVY,
+                                        'cursor': 'pointer',
+                                        'paddingBottom': '12px',
+                                        'borderBottom': f'3px solid {NAVY}',
+                                        'transition': 'all 0.3s ease',
+                                    }
+                                ),
+                            ], width=6),
+                            dbc.Col([
+                                html.Button(
+                                    "Create Account",
+                                    id='auth-btn-signup-tab',
+                                    n_clicks=0,
+                                    style={
+                                        'background': 'none',
+                                        'border': 'none',
+                                        'fontSize': '18px',
+                                        'fontWeight': '700',
+                                        'color': TEXT_LIGHT,
+                                        'cursor': 'pointer',
+                                        'paddingBottom': '12px',
+                                        'transition': 'all 0.3s ease',
+                                    }
+                                ),
+                            ], width=6),
+                        ], style={
+                            'borderBottom': f'2px solid {BORDER}', 
+                            'marginBottom': '40px',
+                            'paddingLeft': '0',
+                            'paddingRight': '0',
+                        }),
+                        
+                        # Sign In Form
+                        html.Div(
+                            id='auth-signin-form-container',
+                            children=_get_signin_form(),
+                            style={'display': 'block'}
+                        ),
+
+                        # Sign Up Form
+                        html.Div(
+                            id='auth-signup-form-container',
+                            children=_get_signup_form(),
+                            style={'display': 'none'}
+                        ),
+                        
+                        # Error/Success Messages
+                        html.Div(id='auth-message-container', style={'marginTop': '20px'}),
+                        
+                    ], style={
+                        'padding': '60px 40px',
+                        'minHeight': '100vh',
+                        'display': 'flex',
+                        'flexDirection': 'column',
+                        'justifyContent': 'center',
+                    }),
+                ], xs=12, md=6, style={'padding': '0', 'backgroundColor': PRIMARY_BG}),
+            ], style={'margin': '0', 'height': '100vh'}),
+            
+        ], style={'width': '100%', 'margin': '0', 'padding': '0'})
+    ], style={'width': '100%', 'margin': '0', 'padding': '0'})
+    
+
+def _get_signin_form():
+    """Sign In form component"""
+    return html.Div([
+        # Username
+        html.Div([
+            html.Label("Username", style={
+                'fontSize': '14px', 'fontWeight': '600', 'color': TEXT, 
+                'display': 'block', 'marginBottom': '8px'
+            }),
+            dcc.Input(
+                id='auth-signin-username',
+                type='text',
+                style={
+                    'padding': '2px 8px',
+                    'borderRadius': '6px',
+                    'border': f'1px solid {BORDER}',
+                    'fontSize': '15px',
+                    'boxSizing': 'border-box',
+                    'width': '100%',
+                    'fontFamily': 'inherit',
+                    'transition': 'border-color 0.3s ease',
+                }
+            ),
+        ], style={'marginBottom': '20px'}),
+        
+        # Password
+        html.Div([
+            html.Label("Password", style={
+                'fontSize': '14px', 'fontWeight': '600', 'color': TEXT, 
+                'display': 'block', 'marginBottom': '8px'
+            }),
+            dcc.Input(
+                id='auth-signin-password',
+                type='password',
+                style={
+                    'padding': '2px 8px',
+                    'borderRadius': '6px',
+                    'border': f'1px solid {BORDER}',
+                    'fontSize': '15px',
+                    'boxSizing': 'border-box',
+                    'width': '100%',
+                    'fontFamily': 'inherit',
+                    'transition': 'border-color 0.3s ease',
+                }
+            ),
+        ], style={'marginBottom': '30px'}),
+        
+        # Sign In Button
+        html.Button(
+            "Sign In",
+            id='auth-btn-signin',
+            n_clicks=0,
+            style={
+                'width': '100%',
+                'backgroundColor': NAVY,
+                'borderColor': NAVY,
+                'color': '#FFFFFF',
+                'fontWeight': '700',
+                'fontSize': '15px',
+                'padding': '12px 16px',
+                'borderRadius': '6px',
+                'border': f'2px solid {NAVY}',
+                'cursor': 'pointer',
+                'transition': 'all 0.3s ease',
+            }
+        ),
         
 
-        <div className="login-card">
+    ])
 
-          {/* Help text */}
 
-          {/* Logo (static) */}
-          <div className="login-logo">
-            <img src={onexLogo} />
-          </div>
+def _get_signup_form():
+    return html.Div([
 
-          <h2 className="login-card-title">Welcome back</h2>
-          <p className="login-card-subtitle">
-            Sign in to continue to APCheck
-          </p>
+        html.Div([
+            html.Label("Full Name"),
+            dcc.Input(id='auth-signup-name', type='text', style={'width': '100%'})
+        ], style={'marginBottom': '15px'}),
 
-          {/* Email */}
-          <label className="login-label">Email Address</label>
-          <div className="input-wrapper">
-            <input
-              placeholder="Enter your email"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="login-input"
-            />
-          </div>
+        html.Div([
+            html.Label("Email"),
+            dcc.Input(id='auth-signup-email', type='email', style={'width': '100%'})
+        ], style={'marginBottom': '15px'}),
 
-          {/* Password */}
-          <div className="password-row">
-            <label className="login-label">Password</label>
-            <span className="forgot-text">Forgot password?</span>
-          </div>
+        html.Div([
+            html.Label("Username"),
+            dcc.Input(id='auth-signup-username', type='text', style={'width': '100%'})
+        ], style={'marginBottom': '15px'}),
 
-          <div className="input-wrapper">
-            <input
-              type="password"
-              placeholder="Enter your password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="login-input"
-            />
-          </div>
+        html.Div([
+            html.Label("Password"),
+            dcc.Input(id='auth-signup-password', type='password', style={'width': '100%'})
+        ], style={'marginBottom': '15px'}),
 
-          {/* Company */}
-          {/* <label className="login-label">Company</label>
-          <div className="input-wrapper">
-            <select
-              value={selectedCompany}
-              onChange={(e) => setSelectedCompany(e.target.value)}
-              className="login-input"
-            >
-              <option value="">Select Company</option>
-              {companies.map((company) => (
-                <option key={company.company_id} value={company.company_id}>
-                  {company.company_name}
-                </option>
-              ))}
-            </select>
-          </div> */}
+        html.Div([
+            html.Label("Confirm Password"),
+            dcc.Input(id='auth-signup-password-confirm', type='password', style={'width': '100%'})
+        ], style={'marginBottom': '15px'}),
 
-          {/* Company */}
-          {companies.length > 1 && (
-            <>
-              <label className="login-label">Company</label>
+        # ✅ ✅ ROLE DROPDOWN ADDED
+        html.Div([
+            html.Label("Role"),
+            dcc.Dropdown(
+                id='auth-signup-role',
+                placeholder='Select Role'
+            )
+        ], style={'marginBottom': '20px'}),
 
-              <div className="input-wrapper">
-                <select
-                  value={selectedCompany}
-                  onChange={(e) => setSelectedCompany(e.target.value)}
-                  className="login-input"
-                >
-                  <option value="">Select Company</option>
-
-                  {companies.map((company) => (
-                    <option
-                      key={company.company_id}
-                      value={company.company_id}
-                    >
-                      {company.company_name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </>
-          )}
-
-          {/* Button */}
-          <button
-            onClick={
-              companies.length > 1
-                ? handleCompanySelect
-                : handleLogin
+        html.Button(
+            "Create Account",
+            id='auth-btn-signup',
+            style={
+                'width': '100%',
+                'backgroundColor': NAVY,
+                'color': '#FFFFFF'
             }
-            className="login-btn"
-          >
-            Sign in
-          </button>
+        )
+    ])
 
-          {/* Divider */}
-          <div className="divider">
-            <span>or</span>
-          </div>
 
-          {/* Admin Login */}
-          <div className="login-admin">
-            <button
-              onClick={() => navigate("/admin/login")}
-              className="login-admin-btn"
-            >
-              Admin Login →
-            </button>
-          </div>
+# ════════════════════════════════════════════════════════════════
+# CALLBACKS TAB SWITCH CALLBACK (SEPARATE)
+# ════════════════════════════════════════════════════════════════
 
-        </div>
-        </div>
-      </div>
+@callback(
+    [Output('auth-signin-form-container', 'style'),
+    Output('auth-signup-form-container', 'style'),
+    Output('auth-btn-signin-tab', 'style'),
+    Output('auth-btn-signup-tab', 'style')],
+    [Input('auth-btn-signin-tab', 'n_clicks'),
+    Input('auth-btn-signup-tab', 'n_clicks')],
+    prevent_initial_call=False
+)
 
-    </div>
-  );
+def switch_auth_tabs(signin_clicks, signup_clicks):
+    """Switch between Sign In and Sign Up forms"""
+    signin_active = not signup_clicks or signin_clicks >= signup_clicks
+    
+    signin_style = {
+        'background': 'none',
+        'border': 'none',
+        'fontSize': '18px',
+        'fontWeight': '700',
+        'color': NAVY if signin_active else TEXT_LIGHT,
+        'cursor': 'pointer',
+        'paddingBottom': '12px',
+        'borderBottom': f'3px solid {NAVY}' if signin_active else 'none',
+        'transition': 'all 0.3s ease',
+    }
+    
+    signup_style = {
+        'background': 'none',
+        'border': 'none',
+        'fontSize': '18px',
+        'fontWeight': '700',
+        'color': NAVY if not signin_active else TEXT_LIGHT,
+        'cursor': 'pointer',
+        'paddingBottom': '12px',
+        'transition': 'all 0.3s ease',
+    }
+    
+    return (
+        {'display': 'block'} if signin_active else {'display': 'none'},
+        {'display': 'block'} if not signin_active else {'display': 'none'},
+        signin_style,
+        signup_style,
+    )
+    
+    
+@callback(    
+    Output('auth-signup-role', 'options'),
+    Input('auth-signup-role', 'id'),
+)
+def load_roles(_):
+    try:
+        session = get_session()
+        roles = session.query(Role).all()
+        session.close()
 
-}
+        return [{"label": r.role_name, "value": r.role_id} for r in roles]
+
+    except Exception as e:
+        print(f"[ERROR] load_roles: {e}")
+        return []
