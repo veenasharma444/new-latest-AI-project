@@ -1,1 +1,71 @@
+dbc.Row([
+
+    dbc.Col([
+        html.Button(
+            "User Login",
+            id="auth-btn-user-tab",
+            n_clicks=1,
+            style={
+                'width':'100%',
+                'padding':'14px',
+                'border':'none',
+                'borderBottom':f'3px solid {NAVY}',
+                'background':'none',
+                'fontSize':'18px',
+                'fontWeight':'700',
+                'color':NAVY,
+                'cursor':'pointer'
+            }
+        )
+    ], width=6),
+
+    dbc.Col([
+        html.Button(
+            "Admin Login",
+            id="auth-btn-admin-tab",
+            n_clicks=0,
+            style={
+                'width':'100%',
+                'padding':'14px',
+                'border':'none',
+                'background':'none',
+                'fontSize':'18px',
+                'fontWeight':'700',
+                'color':TEXT_LIGHT,
+                'cursor':'pointer'
+            }
+        )
+    ], width=6),
+
+])
+
+
+
+
+////
+@callback(
+    [
+        Output("auth-btn-user-tab","style"),
+        Output("auth-btn-admin-tab","style")
+    ],
+    [
+        Input("auth-btn-user-tab","n_clicks"),
+        Input("auth-btn-admin-tab","n_clicks")
+    ]
+)
+/////////
+user_active = user_clicks >= admin_clicks
+
+////
+
+html.Button(
+    "User Sign In",
+    id="auth-btn-signin"
+)
+
+///
+
+
+
+
 
