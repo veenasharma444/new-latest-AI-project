@@ -1,1 +1,35 @@
+def _get_admin_login_form():
+    """Admin Login Form"""
 
+    return html.Div([
+
+        html.Div([
+            html.Label("Admin Username"),
+            dcc.Input(
+                id="auth-admin-username",
+                type="text",
+                style={"width": "100%"}
+            )
+        ], style={"marginBottom": "15px"}),
+
+        html.Div([
+            html.Label("Password"),
+            dcc.Input(
+                id="auth-admin-password",
+                type="password",
+                style={"width": "100%"}
+            )
+        ], style={"marginBottom": "20px"}),
+
+        html.Button(
+            "Admin Login",
+            id="auth-btn-admin-login",
+            n_clicks=0,
+            style={
+                "width": "100%",
+                "backgroundColor": NAVY,
+                "color": "#FFFFFF"
+            }
+        )
+
+    ])
