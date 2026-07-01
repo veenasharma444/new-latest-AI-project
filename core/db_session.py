@@ -1,0 +1,1 @@
+_current_db = {'engine': None, 'db_type': None}  # Server-side holder for the active DB engine
