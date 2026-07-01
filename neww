@@ -1,187 +1,647 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { authApi } from "../api/client";
+import './login.css'
+import { LuDollarSign, LuShieldCheck, LuTvMinimal } from "react-icons/lu";
+import { FaBolt } from "react-icons/fa";
+import { HiOutlineBolt } from "react-icons/hi2";
+import onexLogo from "../images/Onex-logo.png";
 
-import {
-  companyApi,
-  CompanyRecord
-} from "../../api/client";
-
-export default function AdminAPPortal() {
-
+export default function UserLogin() {
   const navigate = useNavigate();
 
+  const [username, setUsername] =
+    useState("");
+
+  const [password, setPassword] =
+    useState("");
   const [companies, setCompanies] =
-    useState<CompanyRecord[]>([]);
+    useState<any[]>([]);
 
-  const [loading, setLoading] =
-    useState(true);
+  const [selectedCompany, setSelectedCompany] =
+    useState("");
 
-  const [selectedCompanyId, setSelectedCompanyId] =
-  useState<number>(0);
-
-  useEffect(() => {
-
-    loadCompanies();
-
-  }, []);
-
-  const loadCompanies = async () => {
+  const handleLogin = async () => {
 
     try {
 
+      // const data =
+      //   await authApi.login(
+      //     username,
+      //     password
+      //   );
+
+      // if (data.companies.length === 1) {
+
+      //   localStorage.setItem(
+      //     "user",
+      //     JSON.stringify({
+      //       ...data,
+      //       selected_company:
+      //         data.companies[0]
+      //     })
+      //   );
+
+      //   localStorage.setItem(
+      //     "company_id",
+      //     String(data.companies[0].company_id)
+      //   );
+
+      //   navigate("/");
+
+      // } else {
+
+      //   setCompanies(
+      //     data.companies
+      //   );
+
+      //   localStorage.setItem(
+      //     "login_user",
+      //     JSON.stringify(data)
+      //   );
+
+      // }
+
       const data =
-        await companyApi.list();
+        await authApi.login(
+          username,
+          password
+        );
 
-      setCompanies(
-        data.filter(
-          c => c.status === "Active"
-        )
-      );
+      /* ADMIN LOGIN */
 
-    } catch (err) {
+      if (data.role_id === 1) {
 
-      console.error(err);
+        localStorage.setItem(
+          "user",
+          JSON.stringify(data)
+        );
+
+        // navigate("/admin/dashboard", {replace:true});
+        // window.location.href = "/admin/dashboard", {replace:true};
+        window.location.replace("/admin/dashboard");
+
+        return;
+      }
+
+      /* USER LOGIN */
+
+      if (data.companies.length === 1) {
+
+        localStorage.setItem(
+          "user",
+          JSON.stringify({
+            ...data,
+            selected_company:
+              data.companies[0]
+          })
+        );
+
+        localStorage.setItem(
+          "company_id",
+          String(data.companies[0].company_id)
+        );
+
+        // navigate("/dashboard", {replace:true});
+        // window.location.href = "/dashboard", {replace:true};
+        window.location.replace("/dashboard");
+
+      } else {
+
+        setCompanies(
+          data.companies
+        );
+
+        localStorage.setItem(
+          "login_user",
+          JSON.stringify(data)
+        );
+
+      }
+
+    } catch {
 
       alert(
-        "Failed to load companies"
+        "Invalid Credentials"
       );
-
-    } finally {
-
-      setLoading(false);
 
     }
 
   };
 
-  const openCompanyPortal = (
-    company: CompanyRecord
-  ) => {
+  const handleCompanySelect = () => {
+
+    if (!selectedCompany) {
+      alert("Please select a company");
+      return;
+    }
+
+    const loginUser =
+      JSON.parse(
+        localStorage.getItem(
+          "login_user"
+        ) || "{}"
+      );
+
+    const company =
+      companies.find(
+        c =>
+          c.company_id ==
+          Number(selectedCompany)
+      );
+    console.log("Selected company:", company);
+
+    localStorage.setItem(
+      "user",
+      JSON.stringify({
+        ...loginUser,
+        selected_company:
+          company
+      })
+    );
 
     localStorage.setItem(
       "company_id",
       String(company.company_id)
     );
 
-    const user =
-      JSON.parse(
-        localStorage.getItem("user") || "{}"
-      );
+    // window.location.href = "/dashboard";
+    // navigate("/dashboard", {replace:true});
+    // window.location.href = "/dashboard", {replace:true};
+    window.location.replace("/dashboard");
 
-    user.selected_company = {
-      company_id: company.company_id,
-      company_name: company.company_name,
-      company_code: company.company_code
-    };
-
-    localStorage.setItem(
-      "user",
-      JSON.stringify(user)
-    );
-
-    // navigate("/dashboard");
-    window.location.href = "/dashboard";
   };
 
+
+  //   return (
+
+  //     <div className="max-w-md mx-auto mt-20">
+
+  //       <div className="card p-6">
+
+  //         <h1 className="text-2xl font-bold mb-6 text-center mb-6">
+  //           APCheck Login
+  //         </h1>
+
+  //         <input
+  //           placeholder="Username"
+  //           value={username}
+  //           onChange={(e) =>
+  //             setUsername(e.target.value)
+  //           }
+  //           className="w-full border p-3 mb-4"
+  //         />
+
+  //         <input
+  //           type="password"
+  //           placeholder="Password"
+  //           value={password}
+  //           onChange={(e) =>
+  //             setPassword(e.target.value)
+  //           }
+  //           className="w-full border p-3 mb-4"
+  //         />
+
+  //         {/* <button
+  //           onClick={handleLogin}
+  //           className="btn-primary w-full"
+  //         >
+  //           Login
+  //         </button> */}
+  //         <button
+  //           onClick={
+  //             companies.length > 1
+  //               ? handleCompanySelect
+  //               : handleLogin
+  //           }
+  //           className="btn-primary w-full"
+  //         >
+  //           Login
+  //         </button>
+  //         {companies.length > 1 && (
+
+  //               <>
+
+  //                 <select
+  //                   value={selectedCompany}
+  //                   onChange={(e) =>
+  //                     setSelectedCompany(
+  //                       e.target.value
+  //                     )
+  //                   }
+  //                   className="w-full border p-3 mt-4"
+  //                 >
+
+  //                   <option value="">
+  //                     Select Company
+  //                   </option>
+
+  //                   {companies.map(company => (
+
+  //                     <option
+  //                       key={company.company_id}
+  //                       value={company.company_id}
+  //                     >
+  //                       {company.company_name}
+  //                     </option>
+
+  //                   ))}
+
+  //                 </select>
+
+  //                 {/* <button
+  //                   onClick={handleCompanySelect}
+  //                   className="btn-primary w-full mt-3"
+  //                 >
+  //                   Continue
+  //                 </button> */}
+
+  //               </>
+
+  //             )}
+
+  //       </div>
+
+  //     </div>
+
+  //   );
+  // }
+
+  // return (
+
+
+
+  //   <div className="max-w-md mx-auto mt-20">
+
+  //     <div className="card p-6">
+
+  //       <h1 className="text-2xl font-bold text-center mb-6">
+  //         APCheck Login
+  //       </h1>
+
+  //       <input
+  //         placeholder="Username"
+  //         value={username}
+  //         onChange={(e) =>
+  //           setUsername(e.target.value)
+  //         }
+  //         className="w-full border p-3 mb-4"
+  //       />
+
+  //       <input
+  //         type="password"
+  //         placeholder="Password"
+  //         value={password}
+  //         onChange={(e) =>
+  //           setPassword(e.target.value)
+  //         }
+  //         className="w-full border p-3 mb-4"
+  //       />
+
+  //       {companies.length > 1 && (
+
+  //         <select
+  //           value={selectedCompany}
+  //           onChange={(e) =>
+  //             setSelectedCompany(
+  //               e.target.value
+  //             )
+  //           }
+  //           className="w-full border p-3 mb-4"
+  //         >
+
+  //           <option value="">
+  //             Select Company
+  //           </option>
+
+  //           {companies.map(company => (
+
+  //             <option
+  //               key={company.company_id}
+  //               value={company.company_id}
+  //             >
+  //               {company.company_name}
+  //             </option>
+
+  //           ))}
+
+  //         </select>
+
+  //       )}
+
+  //       <button
+  //         onClick={
+  //           companies.length > 1
+  //             ? handleCompanySelect
+  //             : handleLogin
+  //         }
+  //         className="btn-primary w-full"
+  //       >
+  //         Login
+  //       </button>
+
+  //     </div>
+
+  //   </div>
+
+  // );
+
   return (
+    // <div className="min-h-screen grid md:grid-cols-2">
 
-    <div className="max-w-7xl mx-auto p-6">
+    //   {/* LEFT SIDE */}
+    //   <div className="hidden md:flex flex-col justify-between bg-gradient-to-br from-indigo-900 to-purple-700 text-white p-10">
 
-      <div className="card p-6 mb-6">
+    //     <div>
+    //       <h1 className="text-xl font-semibold mb-8">APCheck</h1>
 
-        <h1 className="text-3xl font-bold mb-2">
-          APCheck Portal
-        </h1>
+    //       <h2 className="text-4xl font-bold leading-tight mb-6">
+    //         Invoice review,
+    //         <br />
+    //         without the headache.
+    //       </h2>
 
-        <p className="text-gray-500">
-          Select a company to access Dashboard,
-          Setup, Run Check and History.
-        </p>
+    //       <p className="text-sm text-indigo-100 max-w-sm">
+    //         Leverage enterprise-grade AI to eliminate duplicate payments,
+    //         detect fraud, and automate your entire accounts payable workflow.
+    //       </p>
+    //     </div>
 
-      </div>
+    //     <div className="grid grid-cols-2 gap-4 mt-10">
+    //       <div className="bg-white/10 p-4 rounded-lg">
+    //         <p className="text-lg font-bold">99%</p>
+    //         <p className="text-xs text-indigo-200">Detection Accuracy</p>
+    //       </div>
 
-      {loading ? (
+    //       <div className="bg-white/10 p-4 rounded-lg">
+    //         <p className="text-lg font-bold">3x</p>
+    //         <p className="text-xs text-indigo-200">Faster Processing</p>
+    //       </div>
 
-      <p>Loading...</p>
+    //       <div className="bg-white/10 p-4 rounded-lg">
+    //         <p className="text-lg font-bold">$0</p>
+    //         <p className="text-xs text-indigo-200">Duplicate Payments</p>
+    //       </div>
 
-    ) : (
+    //       <div className="bg-white/10 p-4 rounded-lg">
+    //         <p className="text-lg font-bold">24/7</p>
+    //         <p className="text-xs text-indigo-200">Continuous Monitoring</p>
+    //       </div>
+    //     </div>
 
-      <div className="card p-6">
+    //     <div className="mt-8 text-xs text-green-300">
+    //       ● System Online - All Services Running
+    //     </div>
+    //   </div>
 
-        <h2 className="text-2xl font-semibold mb-6">
-          Select Company
-        </h2>
+    //   {/* RIGHT SIDE */}
+    //   <div className="flex items-center justify-center bg-gray-50 p-6">
+
+    //     <div className="w-full max-w-md bg-white p-8 rounded-xl shadow">
+
+    //       <h2 className="text-2xl font-bold text-center mb-2">
+    //         Welcome back
+    //       </h2>
+
+    //       <p className="text-center text-gray-500 text-sm mb-6">
+    //         Sign in to continue to APCheck
+    //       </p>
+
+    //       {/* Username */}
+    //       <input
+    //         placeholder="Email Address"
+    //         value={username}
+    //         onChange={(e) => setUsername(e.target.value)}
+    //         className="w-full border rounded-lg p-3 mb-4 focus:ring-2 focus:ring-indigo-500 outline-none"
+    //       />
+
+    //       {/* Password */}
+    //       <input
+    //         type="password"
+    //         placeholder="Password"
+    //         value={password}
+    //         onChange={(e) => setPassword(e.target.value)}
+    //         className="w-full border rounded-lg p-3 mb-4 focus:ring-2 focus:ring-indigo-500 outline-none"
+    //       />
+
+    //       {/* Company dropdown */}
+    //       {companies.length > 1 && (
+    //         <select
+    //           value={selectedCompany}
+    //           onChange={(e) => setSelectedCompany(e.target.value)}
+    //           className="w-full border rounded-lg p-3 mb-4 focus:ring-2 focus:ring-indigo-500 outline-none"
+    //         >
+    //           <option value="">Select Company</option>
+    //           {companies.map((company) => (
+    //             <option
+    //               key={company.company_id}
+    //               value={company.company_id}
+    //             >
+    //               {company.company_name}
+    //             </option>
+    //           ))}
+    //         </select>
+    //       )}
+
+    //       {/* Login Button */}
+    //       <button
+    //         onClick={
+    //           companies.length > 1
+    //             ? handleCompanySelect
+    //             : handleLogin
+    //         }
+    //         className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-lg font-medium shadow"
+    //       >
+    //         Sign in
+    //       </button>
+
+    //       {/* Admin login (optional UI element) */}
+    //       <div className="mt-4 text-center">
+    //         <button
+    //           onClick={() => navigate("/admin/login")}
+    //           className="text-sm text-gray-600 hover:text-indigo-600"
+    //         >
+    //           Admin Login →
+    //         </button>
+    //       </div>
+    //     </div>
+
+    //   </div>
+    // </div>
+    <div className="login-container">
+
+      {/* LEFT SIDE */}
+      <div className="login-left">
 
         <div>
+          <h1 className="login-title"> <span className="title-icon"><LuShieldCheck /> </span> APCheck</h1>
 
-          <label className="block text-sm font-medium mb-2">
-            Company
-          </label>
+          <h2 className="login-heading">
+            Invoice review,
+            <br />
+            without the headache.
+          </h2>
 
-          <select
-            value={selectedCompanyId}
-            onChange={(e) =>
-              setSelectedCompanyId(
-                Number(e.target.value)
-              )
-            }
-            className="w-full border border-gray-300 rounded-lg px-4 py-3"
-          >
-
-            <option value={0}>
-              -- Select Company --
-            </option>
-
-            {companies.map(company => (
-
-              <option
-                key={company.company_id}
-                value={company.company_id}
-              >
-                {company.company_name}
-              </option>
-
-            ))}
-
-          </select>
-
+          <p className="login-desc">
+            Leverage enterprise-grade AI to eliminate duplicate payments,
+            detect fraud, and automate your entire accounts payable workflow.
+          </p>
         </div>
 
-        <div className="mt-6">
+        <div className="login-stats">
+          <div className="login-stat-card">
+            <p className="login-stat-icon"><LuShieldCheck /></p>
+            <p className="login-stat-value">99%</p>
+            <p className="login-stat-label">Detection Accuracy</p>
+          </div>
 
-          <button
-            className="btn-primary"
-            onClick={() => {
+          <div className="login-stat-card">
+            <p className="login-stat-icon"><HiOutlineBolt /></p>
+            <p className="login-stat-value">3x</p>
+            <p className="login-stat-label">Faster Processing</p>
+          </div>
 
-              const company =
-                companies.find(
-                  c =>
-                    c.company_id === selectedCompanyId
-                );
+          <div className="login-stat-card">
+            <p className="login-stat-icon"><LuDollarSign /></p>
+            <p className="login-stat-value">$0</p>
+            <p className="login-stat-label">Duplicate Payments</p>
+          </div>
 
-              if (!company) {
-
-                alert(
-                  "Please select a company"
-                );
-
-                return;
-              }
-
-              openCompanyPortal(company);
-
-            }}
-          >
-            Open APCheck Portal
-          </button>
-
+          <div className="login-stat-card">
+            <p className="login-stat-icon"><LuTvMinimal /></p>
+            <p className="login-stat-value">24/7</p>
+            <p className="login-stat-label">Continuous Monitoring</p>
+          </div>
         </div>
 
+        <div className="login-status">
+          <span className="login-status-text">● System Online - All Services Running</span>
+        </div>
       </div>
 
-    )}
+      {/* RIGHT SIDE */}
+      <div className="login-right">
+        <div className="login-help"><span className="need-help">Need help?</span></div>
+        <div className="login-div">
+
+        
+
+        <div className="login-card">
+
+          {/* Help text */}
+
+          {/* Logo (static) */}
+          <div className="login-logo">
+            <img src={onexLogo} />
+          </div>
+
+          <h2 className="login-card-title">Welcome back</h2>
+          <p className="login-card-subtitle">
+            Sign in to continue to APCheck
+          </p>
+
+          {/* Email */}
+          <label className="login-label">Email Address</label>
+          <div className="input-wrapper">
+            <input
+              placeholder="Enter your email"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              className="login-input"
+            />
+          </div>
+
+          {/* Password */}
+          <div className="password-row">
+            <label className="login-label">Password</label>
+            <span className="forgot-text">Forgot password?</span>
+          </div>
+
+          <div className="input-wrapper">
+            <input
+              type="password"
+              placeholder="Enter your password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="login-input"
+            />
+          </div>
+
+          {/* Company */}
+          {/* <label className="login-label">Company</label>
+          <div className="input-wrapper">
+            <select
+              value={selectedCompany}
+              onChange={(e) => setSelectedCompany(e.target.value)}
+              className="login-input"
+            >
+              <option value="">Select Company</option>
+              {companies.map((company) => (
+                <option key={company.company_id} value={company.company_id}>
+                  {company.company_name}
+                </option>
+              ))}
+            </select>
+          </div> */}
+
+          {/* Company */}
+          {companies.length > 1 && (
+            <>
+              <label className="login-label">Company</label>
+
+              <div className="input-wrapper">
+                <select
+                  value={selectedCompany}
+                  onChange={(e) => setSelectedCompany(e.target.value)}
+                  className="login-input"
+                >
+                  <option value="">Select Company</option>
+
+                  {companies.map((company) => (
+                    <option
+                      key={company.company_id}
+                      value={company.company_id}
+                    >
+                      {company.company_name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </>
+          )}
+
+          {/* Button */}
+          <button
+            onClick={
+              companies.length > 1
+                ? handleCompanySelect
+                : handleLogin
+            }
+            className="login-btn"
+          >
+            Sign in
+          </button>
+
+          {/* Divider */}
+          <div className="divider">
+            <span>or</span>
+          </div>
+
+          {/* Admin Login */}
+          <div className="login-admin">
+            <button
+              onClick={() => navigate("/admin/login")}
+              className="login-admin-btn"
+            >
+              Admin Login →
+            </button>
+          </div>
+
+        </div>
+        </div>
+      </div>
 
     </div>
-
   );
+
 }
