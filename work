@@ -1,1 +1,21 @@
 
+button = ctx.triggered_id
+
+if button == "auth-btn-signin":
+    username = user_username
+    password = user_password
+
+elif button == "auth-btn-admin-login":
+    username = admin_username
+    password = admin_password
+
+else:
+    raise dash.exceptions.PreventUpdate
+
+print("Signin clicked", button, username)
+
+if not username or not password:
+    return dash.no_update, dbc.Alert(
+        "Please enter username and password",
+        color="warning"
+    ), dash.no_update
