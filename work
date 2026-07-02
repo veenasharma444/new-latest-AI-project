@@ -1,120 +1,26 @@
-from dash import html, dcc
-import dash_bootstrap_components as dbc
+class User(Base):
+    """User account and authentication"""
+    __tablename__ = "users"
 
+    user_id = Column(Integer, primary_key=True)
+    username = Column(String(80), unique=True, nullable=False, index=True)
+    email = Column(String(120), unique=True, nullable=False, index=True)
+    password_hash = Column(String(255), nullable=False)
+    name = Column(String)
+    is_active = Column(Boolean, default=True, index=True)
+    # is_admin = Column(Boolean, default=False)
+    role_id = Column(Integer, ForeignKey("role_master.role_id"), nullable=True)
+    role = relationship("Role")
+    last_login = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
 
-def layout():
+    # Relationships
+    uploads = relationship("Upload", back_populates="user", cascade="all, delete-orphan")
+    db_connections = relationship("DBConnection", back_populates="user", cascade="all, delete-orphan")
+    saved_dashboards = relationship("SavedDashboard", back_populates="user", cascade="all, delete-orphan")
+    analysis_logs = relationship("AnalysisLog", back_populates="user", cascade="all, delete-orphan")
+    user_preferences = relationship("UserPreferences", back_populates="user", uselist=False, cascade="all, delete-orphan")
 
-    card_style = {
-        "border": "1px solid #E2E8F0",
-        "borderRadius": "10px",
-        "padding": "25px",
-        "height": "160px",
-        "cursor": "pointer",
-        "transition": "0.2s",
-        "backgroundColor": "white",
-        "boxShadow": "0 2px 6px rgba(0,0,0,0.08)"
-    }
-
-    return dbc.Container([
-
-        dbc.Row(
-            dbc.Col([
-                html.H2(
-                    "Admin Dashboard",
-                    style={"fontWeight": "700"}
-                ),
-
-                html.P(
-                    "Manage users, companies and company mappings.",
-                    style={"color": "#666"}
-                )
-            ]),
-            className="mt-4 mb-4"
-        ),
-
-        dbc.Row([
-
-            dbc.Col(
-                dcc.Link(
-
-                    dbc.Card(
-                        dbc.CardBody([
-                            html.H4("Users"),
-                            html.P("Create and manage users.")
-                        ]),
-                        style=card_style
-                    ),
-
-                    href="/users",
-                    style={"textDecoration": "none", "color": "inherit"}
-                ),
-                md=3
-            ),
-
-            dbc.Col(
-                dcc.Link(
-
-                    dbc.Card(
-                        dbc.CardBody([
-                            html.H4("Companies"),
-                            html.P("Create and manage companies.")
-                        ]),
-                        style=card_style
-                    ),
-
-                    href="/companies",
-                    style={"textDecoration": "none", "color": "inherit"}
-                ),
-                md=3
-            ),
-
-            dbc.Col(
-                dcc.Link(
-
-                    dbc.Card(
-                        dbc.CardBody([
-                            html.H4("User Company Mapping"),
-                            html.P("Assign companies to users.")
-                        ]),
-                        style=card_style
-                    ),
-
-                    href="/mapping",
-                    style={"textDecoration": "none", "color": "inherit"}
-                ),
-                md=3
-            ),
-
-            dbc.Col(
-                dcc.Link(
-
-                    dbc.Card(
-                        dbc.CardBody([
-                            html.H4("Portal"),
-                            html.P("Open User Portal.")
-                        ]),
-                        style=card_style
-                    ),
-
-                    href="/upload",
-                    style={"textDecoration": "none", "color": "inherit"}
-                ),
-                md=3
-            ),
-
-        ])
-
-    ], fluid=True)
-
-
-
-
-
-
-from pages.admin_dashboard import layout as admin_dashboard_layout
-elif pathname == "/admin":
-    return admin_dashboard_layout()
-
-return "/admin", session_data
-
-
+    def __repr__(self):
+        return f"<User(user_id={self.user_id}, username={self.username}, email={self.email})>"
