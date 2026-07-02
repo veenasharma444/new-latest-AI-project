@@ -1,21 +1,144 @@
+NAV_STEPS = [
+    ('/upload',    'Upload Data',          '1'),
+    ('/data-review','Review Data',         '2'),
+    ('/config',    'Config',               '3'),
+    ('/dashboard', 'Dashboard',            '4'),
+    ('/companies', 'Companies',            '5'),
+    ('/mapping', 'Mapping',                '6')
+]
+def make_navbar(session_data, pathname):
 
-button = ctx.triggered_id
+    username = session_data.get("username", "User")
+    role_id = session_data.get("role_id")
 
-if button == "auth-btn-signin":
-    username = user_username
-    password = user_password
+    role_name = "Admin" if role_id == 1 else "User"
 
-elif button == "auth-btn-admin-login":
-    username = admin_username
-    password = admin_password
+    #  helper → active highlight (NO icons now)
+    def nav_item(label, href):
+        active = pathname == href
 
-else:
-    raise dash.exceptions.PreventUpdate
+        return dcc.Link(
+            label,
+            href=href,
+            style={
+                'padding': '6px 12px',
+                'borderRadius': '6px',
+                'textDecoration': 'none',
+                'fontSize': '14px',
+                'fontWeight': '600',
+                'color': '#1A365D' if not active else 'white',
+                'backgroundColor': '#E2E8F0' if not active else '#2B6CB0',
+                'transition': 'all 0.2s'
+            }
+        )
 
-print("Signin clicked", button, username)
+    #  COMMON FLOW
+    nav_links = [
+        nav_item("Upload", "/upload"),
+        nav_item("Data Review", "/data-review"),
+        nav_item("Config", "/config"),
+        nav_item("Dashboard", "/dashboard"),
+    ]
 
-if not username or not password:
-    return dash.no_update, dbc.Alert(
-        "Please enter username and password",
-        color="warning"
-    ), dash.no_update
+    #  ADMIN EXTRA LINKS
+    if role_id == 1:
+        nav_links += [
+            nav_item("Users", "/users"),
+            nav_item("Companies", "/companies"),
+            nav_item("Mapping", "/mapping"),
+        ]
+
+    return html.Div([
+
+        #  LEFT LOGO
+        html.Div([
+            html.Div("◆", style={
+                'fontSize': '18px',
+                'color': '#2B6CB0',
+                'marginRight': '8px'
+            }),
+
+            html.Div([
+                html.Div("ONEX AI", style={
+                    'fontSize': '15px',
+                    'fontWeight': '800',
+                    'color': '#1A365D'
+                }),
+                html.Div("Data Insight Platform", style={
+                    'fontSize': '10px',
+                    'color': '#718096'
+                }),
+            ])
+        ], style={'display': 'flex', 'alignItems': 'center'}),
+
+        #  CENTER NAV
+        html.Div(nav_links, style={
+            'display': 'flex',
+            'gap': '12px',
+            'alignItems': 'center'
+        }),
+
+        #  RIGHT USER + LOGOUT
+        html.Div([
+
+            html.Div([
+                html.Div(username, style={
+                    'fontSize': '13px',
+                    'fontWeight': '600',
+                    'color': '#1A365D'
+                }),
+                html.Div(role_name, style={
+                    'fontSize': '11px',
+                    'color': '#718096'
+                }),
+            ], style={'marginRight': '15px'}),
+
+            dbc.Button(
+                "Logout",
+                id='btn-logout',
+                color='danger',
+                size='sm'
+            )
+
+        ], style={'display': 'flex', 'alignItems': 'center'})
+
+    ], style={
+        'display': 'flex',
+        'justifyContent': 'space-between',
+        'alignItems': 'center',
+        'padding': '10px 20px',
+        'backgroundColor': '#F7FAFC',
+        'borderBottom': '1px solid #E2E8F0',
+        'boxShadow': '0 2px 6px rgba(0,0,0,0.05)'
+    })
+# ═══════════════════════════════════════════════════════════════
+# APP LAYOUT
+# ═══════════════════════════════════════════════════════════════
+
+app.layout = html.Div([
+    dcc.Location(id='url', refresh=False),
+
+    # Navbar - rendered conditionally based on authentication
+    html.Div(id='navbar-container'),
+
+    # Session state - stored in browser localStorage
+    dcc.Store(id='session-state', storage_type='local', data={}),
+    dcc.Store(id='store-upload-id', storage_type='memory', data=None),
+    dcc.Store(id='store-global-dataframe', storage_type='memory', data=df_json),
+    dcc.Store(id='store-global-profiles', storage_type='memory', data=profiles_dict),
+    dcc.Store(id='store-initial-config', storage_type='memory', data=config_dict),
+
+    dcc.Store(id='store-kpi-selections', storage_type='memory', data=[]),
+    dcc.Store(id='store-filter-selections', storage_type='memory', data=[]),
+
+    dcc.Store(id='store-ai-suggestions', storage_type='memory', data=None),
+    dcc.Store(id='store-objective', storage_type='memory', data=''),
+    dcc.Store(id='store-executive-summary', storage_type='memory', data=None),
+
+    dcc.Store(id='store-confirmed-dtypes', storage_type='memory', data={}),
+
+    dcc.Store(id='db-conditions-store', storage_type='memory', data=[]),
+
+    # Page content - changes based on URL
+    html.Div(id='page-content'),
+], style={'fontFamily': "'Segoe UI', Arial, sans-serif", 'backgroundColor': '#F7FAFC'})
