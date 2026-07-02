@@ -1,124 +1,131 @@
+# 📄 PAGE ROUTING CALLBACK
 @app.callback(
-    Output('url', 'pathname', allow_duplicate=True),
-    Output('auth-message-container', 'children'),
-    Output('session-state', 'data', allow_duplicate=True),
-    Input('auth-btn-signin', 'n_clicks'),
-    State('auth-signin-username', 'value'),
-    State('auth-signin-password', 'value'),
+    Output('page-content', 'children'),
+    Input('url', 'pathname'),
+    [State('store-global-dataframe', 'data'),
+    State('store-global-profiles', 'data'),
+    State('store-objective', 'data'),
+    State('store-initial-config', 'data'),
+    State('store-ai-suggestions', 'data'),
     State('session-state', 'data'),
-    prevent_initial_call=True
+    State('store-kpi-selections', 'data'),
+    State('store-filter-selections', 'data')],
+    prevent_initial_call=False
 )
-def handle_signin(n_clicks, username, password, session_data):
-    print(" Signin clicked", n_clicks, username)  # DEBUG
+def display_page(pathname, df_json, profiles_dict,  objective_data, config_dict, ai_suggestions, session_data, store_kpi_data, store_filter_data):
+    """Route to appropriate page based on URL and authentication"""
+    if not pathname or pathname == '':
+        pathname = '/'
 
-    if not n_clicks:
-        raise dash.exceptions.PreventUpdate
-
-    if not username or not password:
-        return dash.no_update, dbc.Alert("Please enter username and password", color="warning"), dash.no_update
-
-    session_data = session_data or {}
-
-    from core.auth import register_user, authenticate_user
-    result = authenticate_user(username, password)
-
-    # print(" Auth result:", result)  # DEBUG
-
-    if result['success']:
-        result = authenticate_user(username, password)
-
-        if result['success']:
-            session_data.update({
-                "is_authenticated": True,
-                "username": result['user_data']['username'],
-                "user_id": result['user_data']['id'],
-                "email": result['user_data']['email'],
-                "name": result['user_data']['name'],
-                "role_id": result['user_data']['role_id']   # ✅ ADD THIS
-            })
-
-            return '/upload', dash.no_update, session_data
-
-        # print("✅ LOGIN SUCCESS → redirecting")
-
-        return '/upload', dash.no_update, session_data
-
-    #  failure
-    return dash.no_update, dbc.Alert(result['message'], color="danger"), dash.no_update
-
-
-# SIGN UP CALLBACK - Register user in PostgreSQL database
-@app.callback(
-    Output('auth-message-container', 'children', allow_duplicate=True),
-    Output('session-state', 'data', allow_duplicate=True),
-    Input('auth-btn-signup', 'n_clicks'),
-    State('auth-signup-name', 'value'),
-    State('auth-signup-email', 'value'),
-    State('auth-signup-username', 'value'),
-    State('auth-signup-password', 'value'),
-    State('auth-signup-password-confirm', 'value'),
-    State('auth-signup-role', 'value'),
-    State('session-state', 'data'),
-    prevent_initial_call=True
-)
-def handle_signup(n_clicks, name, email, username, password, password_confirm, role_id, session_data):
-    """Handle user sign up - REGISTER IN DATABASE"""
-    if not n_clicks:
-        raise dash.exceptions.PreventUpdate
-
-    session_data = session_data or {}
-
-    # Validation
-    if not all([name, email, username, password, password_confirm, role_id]):
-        return dbc.Alert("All fields are required", color="warning"), dash.no_update
+    pathname = str(pathname).strip()
     
-    if not role_id:
-        return dbc.Alert("Please select a role", color="warning"), dash.no_update
+    session_data = session_data or {}
+    is_authenticated = session_data.get("is_authenticated", False)
 
-    if not SessionValidator.is_valid_email(email):
-        return dbc.Alert("Invalid email address", color="warning"), dash.no_update
+    #  Block all pages except /auth if not authenticated
+    if pathname != '/auth' and not is_authenticated:
+        return page_auth.generate_auth_page()
 
-    is_valid_user, user_msg = SessionValidator.validate_username(username)
-    if not is_valid_user:
-        return dbc.Alert(user_msg, color="warning"), dash.no_update
-
-    is_valid_pwd, pwd_msg = SessionValidator.is_strong_password(password)
-    if not is_valid_pwd:
-        return dbc.Alert(pwd_msg, color="warning"), dash.no_update
-
-    if password != password_confirm:
-        return dbc.Alert("Passwords do not match", color="warning"), dash.no_update
-    
+    #  Redirect authenticated users away from /auth page
+    if pathname == '/auth' and is_authenticated:
+        return page_upload.generate_upload_page()
    
-    # ✅ REGISTER USER IN DATABASE
-    reg_result = register_user(username, email, name, password, role_id)
-    
-    if not reg_result['success']:
-        return dbc.Alert(reg_result['message'], color="warning"), dash.no_update
+    try:
+        # Show auth page
+        if pathname == '/auth' or pathname == '/login' or pathname == '/':
+            return page_auth.generate_auth_page()
 
-    # ✅ AUTO-LOGIN after signup
-    auth_result = authenticate_user(username, password)
-    
-    if auth_result['success']:
-        session_data.update({
-            "is_authenticated": True,
-            "username": auth_result['user_data']['username'],
-            "user_id": auth_result['user_data']['id'],
-            "email": auth_result['user_data']['email'],
-            "name": auth_result['user_data']['name'],
-            "role_id": auth_result['user_data']['role_id']   # ✅ ADD THIS
-        })
+        # Check data for other routes
+        if not df_json or not profiles_dict:
+            return html.Div(
+                [
+                    html.H3("Error: Data not initialized"),
+                    html.P("Please refresh the page."),
+                ],
+                style={'padding': '20px', 'textAlign': 'center', 'color': 'red'}
+            )
 
-        success = dbc.Alert(
-            [
-                html.H4("Account Created!", className="alert-heading"),
-                html.P(f"Welcome {name}! You are now logged in."),
-            ],
-            color="success",
-            style={'marginTop': '20px'}
+        current_df = get_cached_dataframe()
+        if current_df is None:
+            return html.Div(
+                [html.H3("Error: Data not loaded"), html.P("Check server logs.")],
+                style={'padding': '20px', 'color': 'red'}
+            )
+
+        current_profiles = load_cached_profiles()
+        if not current_profiles:
+            return html.Div(
+                [html.H3("Error: Profiles not available"), html.P("Check server logs.")],
+                style={'padding': '20px', 'color': 'red'}
+            )
+
+        confirmed_dtypes = session_data.get('confirmed_dtypes', {})
+        if not confirmed_dtypes:
+            confirmed_dtypes = {}
+            for col, profile_data in current_profiles.items():
+                confirmed_dtypes[col] = profile_data.get('dtype', 'categorical')
+
+        # Route to pages
+        if pathname == '/upload':
+            return page_upload.generate_upload_page()
+
+        elif pathname == '/config':
+            return page_config.generate_config_page(current_df, current_profiles, confirmed_dtypes)
+
+        elif pathname == '/dashboard':
+            # Give priority to loaded dashboard values
+            kpi_selections = session_data.get('kpi_selections', store_kpi_data or [])
+            filter_selections = session_data.get('filter_selections', store_filter_data or [])
+
+            print("=" *80)
+            print("DASHBOARD PAGE")
+            print("AI_SUGGESTIONS TYPE:", type(ai_suggestions))
+            print("AI_SUGGESTIONS:", ai_suggestions)
+            print("=" * 80)
+            
+
+            # llm_analysis = None
+            # if config_dict:
+            #     llm_analysis = AnalysisFormatter.format_analysis(
+            #         type('DashboardConfig', (), config_dict)() if isinstance(config_dict, dict) else config_dict
+            #     )
+            
+            effective_config = ai_suggestions or config_dict
+            
+            llm_analysis = None
+            if effective_config:
+                llm_analysis = AnalysisFormatter.format_analysis(
+                    type('DashboardConfig', (), effective_config)() if isinstance(effective_config, dict) else effective_config
+                )
+
+            result = page_dashboard.generate_dashboard_page(
+                current_df,
+                kpi_selections=kpi_selections,
+                filter_selections=filter_selections,
+                confirmed_dtypes=confirmed_dtypes,
+                llm_analysis=llm_analysis
+            )
+            return result
+        
+        elif pathname == '/data-review':
+            return page_data_review.generate_data_review_page(current_df, current_profiles)
+        
+        elif pathname == '/companies':
+            from pages import page_companies
+            return page_companies.generate_companies_page()
+        
+        elif pathname == '/mapping':
+            from pages import page_user_company
+            return page_user_company.generate_mapping_page()
+
+        else:
+            return page_auth.generate_auth_page()
+
+    except Exception as e:
+        import traceback
+        print(f"[ERROR] display_page: {type(e).__name__}: {e}\n{traceback.format_exc()}")
+        return html.Div(
+            [html.H3("Error loading page"), html.P("Check server logs.")],
+            style={'padding': '20px', 'backgroundColor': '#ffeeee', 'color': '#cc0000'}
         )
-        print(f"[OK] New user registered and logged in: {username}")
-        return success, session_data
-
-    return dbc.Alert("Account created, but login failed.", color="warning"), dash.no_update
 
