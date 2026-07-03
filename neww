@@ -1,1 +1,139 @@
 
+def generate_users_page():
+
+    return dbc.Container(
+
+        [
+            dcc.Store(id="selected-user-id"),
+            html.H2(
+                "User Master",
+                className="fw-bold mb-4"
+            ),
+            html.Div(
+                id="create-user-msg",
+                className="mb-3"
+            ),
+            dbc.Card(
+                dbc.CardBody(
+                    [
+                        dbc.Row(
+                            [
+                                dbc.Col(
+                                    [
+                                        dbc.Label(
+                                            "Username",
+                                            className="fw-semibold"
+                                        ),
+                                        dbc.Input(
+                                            id="user-username",
+                                            placeholder="Enter username",
+                                            type="text",
+                                            className="user-input"
+                                        )
+                                    ],
+                                    md=3
+                                ),
+                                dbc.Col(
+                                    [
+                                        dbc.Label(
+                                            "Password",
+                                            className="fw-semibold"
+                                        ),
+                                        dbc.Input(
+                                            id="user-password",
+                                            placeholder="Enter password",
+                                            type="password",
+                                            className="user-input"
+                                        )
+                                    ],
+                                    md=3
+                                ),
+                                dbc.Col(
+                                    [
+                                        dbc.Label(
+                                            "Role",
+                                            className="fw-semibold"
+                                        ),
+                                        dbc.Select(
+                                            id="user-role",
+                                            options=[
+                                                {
+                                                    "label": "Admin",
+                                                    "value": 1
+                                                },
+                                                {
+                                                    "label": "User",
+                                                    "value": 2
+                                                }
+                                            ],
+                                            value=2,
+                                            className="user-input"
+                                        )
+                                    ],
+                                    md=3
+                                ),
+                                dbc.Col(
+                                    dbc.Button(
+                                        "Create User",
+                                        id="btn-save-user",
+                                        color="primary",
+                                        className="create-user-btn"
+                                    ),
+                                    md=3,
+                                    className="d-flex align-items-end"
+                                )
+                            ],
+                            className="g-3"
+                        )
+                    ]
+                ),
+                className="shadow-sm rounded-3"
+            ),
+            dbc.Card(
+                dbc.CardBody(
+                    [
+                        html.H5(
+    "User List",
+    className="fw-bold mb-3"
+),
+
+html.Table(
+
+    [
+
+        html.Thead(
+
+            html.Tr(
+
+                [
+
+                    html.Th("Action"),
+                    html.Th("Username"),
+                    html.Th("Role"),
+                    html.Th("Toggle Status")
+
+                ]
+
+            )
+
+        ),
+
+        html.Tbody(
+
+            id="users-list"
+
+        )
+
+    ],
+
+    className="table user-master-table"
+
+)
+                    ]
+                ),
+                className="shadow-sm border-0 rounded-4"
+            )
+        ],
+        fluid=True,
+        className="p-4"
+    )
