@@ -1,139 +1,49 @@
+def load_users(pathname):
 
-def generate_users_page():
+        if pathname != "/users":
+            raise PreventUpdate
+        
+        users = get_all_users()
+        children = []
+        for user in users:
 
-    return dbc.Container(
-
-        [
-            dcc.Store(id="selected-user-id"),
-            html.H2(
-                "User Master",
-                className="fw-bold mb-4"
-            ),
-            html.Div(
-                id="create-user-msg",
-                className="mb-3"
-            ),
-            dbc.Card(
-                dbc.CardBody(
+            children.append(
+                dbc.Row(
                     [
-                        dbc.Row(
-                            [
-                                dbc.Col(
-                                    [
-                                        dbc.Label(
-                                            "Username",
-                                            className="fw-semibold"
-                                        ),
-                                        dbc.Input(
-                                            id="user-username",
-                                            placeholder="Enter username",
-                                            type="text",
-                                            className="user-input"
-                                        )
-                                    ],
-                                    md=3
-                                ),
-                                dbc.Col(
-                                    [
-                                        dbc.Label(
-                                            "Password",
-                                            className="fw-semibold"
-                                        ),
-                                        dbc.Input(
-                                            id="user-password",
-                                            placeholder="Enter password",
-                                            type="password",
-                                            className="user-input"
-                                        )
-                                    ],
-                                    md=3
-                                ),
-                                dbc.Col(
-                                    [
-                                        dbc.Label(
-                                            "Role",
-                                            className="fw-semibold"
-                                        ),
-                                        dbc.Select(
-                                            id="user-role",
-                                            options=[
-                                                {
-                                                    "label": "Admin",
-                                                    "value": 1
-                                                },
-                                                {
-                                                    "label": "User",
-                                                    "value": 2
-                                                }
-                                            ],
-                                            value=2,
-                                            className="user-input"
-                                        )
-                                    ],
-                                    md=3
-                                ),
-                                dbc.Col(
-                                    dbc.Button(
-                                        "Create User",
-                                        id="btn-save-user",
-                                        color="primary",
-                                        className="create-user-btn"
-                                    ),
-                                    md=3,
-                                    className="d-flex align-items-end"
-                                )
-                            ],
-                            className="g-3"
+                        dbc.Col(
+                            html.Button(
+                                "✏️",
+                                id={
+                                    "type": "edit-user",
+                                    "index": user["user_id"]
+                                },
+                                className="btn btn-link"
+                            ),
+                            width=1
+                        ),
+
+                        dbc.Col(user["username"], width=4),
+                        dbc.Col(
+                            dbc.Badge(
+                                user["role"],
+                                color="primary"
+                            ),
+                            width=2
+                        ),
+                        dbc.Col(
+                            dbc.Switch(
+                                id={
+                                    "type": "toggle-user",
+                                    "index": user["user_id"]
+                                },
+
+                                value=user["is_active"]
+                            ),
+                            width=2
                         )
-                    ]
-                ),
-                className="shadow-sm rounded-3"
-            ),
-            dbc.Card(
-                dbc.CardBody(
-                    [
-                        html.H5(
-    "User List",
-    className="fw-bold mb-3"
-),
+                    ],
 
-html.Table(
-
-    [
-
-        html.Thead(
-
-            html.Tr(
-
-                [
-
-                    html.Th("Action"),
-                    html.Th("Username"),
-                    html.Th("Role"),
-                    html.Th("Toggle Status")
-
-                ]
-
+                    className="align-items-center border-bottom py-2"
+                )
             )
-
-        ),
-
-        html.Tbody(
-
-            id="users-list"
-
-        )
-
-    ],
-
-    className="table user-master-table"
-
-)
-                    ]
-                ),
-                className="shadow-sm border-0 rounded-4"
-            )
-        ],
-        fluid=True,
-        className="p-4"
-    )
+        return children
