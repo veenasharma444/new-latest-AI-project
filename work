@@ -1,51 +1,68 @@
+@app.callback(
+    Output('url', 'pathname', allow_duplicate=True),
+    Output('auth-message-container', 'children'),
+    Output('session-state', 'data', allow_duplicate=True),
+    Input('auth-btn-signin', 'n_clicks'),
+    Input('auth-btn-admin-login', 'n_clicks'),
+    State('auth-signin-username', 'value'),
+    State('auth-signin-password', 'value'),
+    State('auth-admin-username', 'value'),
+    State('auth-admin-password', 'value'),
+    State('session-state', 'data'),
+    prevent_initial_call=True
+)
 
-def build_user_rows(users):
+def handle_signin(user_click, admin_click, user_username, user_password, admin_username, admin_password, session_data):
 
-    children = []
+    button = ctx.triggered_id
 
-    for user in users:
+    if button == "auth-btn-signin":
+        username = user_username
+        password = user_password
 
-        children.append(
+    elif button == "auth-btn-admin-login":
+        username = admin_username
+        password = admin_password
 
-            html.Tr(
+    else:
+        raise dash.exceptions.PreventUpdate
 
-                [
+    print("Signin clicked", button, username)
 
-                    html.Td(
-                        html.Button(
-                            "✏️",
-                            id={
-                                "type": "edit-user",
-                                "index": user["user_id"]
-                            },
-                            className="btn btn-link edit-btn"
-                        )
-                    ),
+    if not username or not password:
+        return dash.no_update, dbc.Alert(
+            "Please enter username and password",
+            color="warning"
+        ), dash.no_update
+    session_data = session_data or {}
 
-                    html.Td(user["username"]),
+    from core.auth import register_user, authenticate_user
+    result = authenticate_user(username, password)
 
-                    html.Td(
-                        dbc.Badge(
-                            user["role"],
-                            color="primary",
-                            pill=True
-                        )
-                    ),
+    # print(" Auth result:", result)  # DEBUG
 
-                    html.Td(
-                        dbc.Switch(
-                            id={
-                                "type": "toggle-user",
-                                "index": user["user_id"]
-                            },
-                            value=user["is_active"]
-                        )
-                    )
+    if result['success']:
+        # Allow only normal users
+        if result['user_data']['role_id'] != 2:  # Assuming role_id 1=Admin, 2=User
+            return dash.no_update, dbc.Alert("Access denied: This is Admin account", color="danger"), dash.no_update
+        
+        result = authenticate_user(username, password)
 
-                ]
+        if result['success']:
+            session_data.update({
+                "is_authenticated": True,
+                "username": result['user_data']['username'],
+                "user_id": result['user_data']['id'],
+                "email": result['user_data']['email'],
+                "name": result['user_data']['name'],
+                "role_id": result['user_data']['role_id']   # ✅ ADD THIS
+            })
 
-            )
+            return '/upload', dash.no_update, session_data
 
-        )
+        # print("✅ LOGIN SUCCESS → redirecting")
 
-    return children
+        return '/upload', dash.no_update, session_data
+
+    #  failure
+    return dash.no_update, dbc.Alert(result['message'], color="danger"), dash.no_update
