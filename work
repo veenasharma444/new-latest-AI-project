@@ -1,40 +1,64 @@
-def update_user(user_id, username, password, role_id):
-    session = get_session()
+@app.callback(
 
-    try:
-        user = session.query(User).filter_by(user_id=user_id).first()
+        Output("create-user-msg", "children"),
+        Output("users-table", "data", allow_duplicate=True),
+        Input("btn-create-user", "n_clicks"),
+        State("selected-user-id", "data"),
+        State("user-username", "value"),
+        State("user-password", "value"),
+        State("user-role", "value"),
+        prevent_initial_call=True
 
-        if not user:
-            return {
-                "success": False,
-                "message": "User not found"
-            }
+    )
+# Create callback
+    def save_user(n, selected_user_id, username, password, role):
 
-        user.username = username
-        user.role_id = role_id
+        if not n:
+            raise PreventUpdate
 
-        if password:
-            user.password_hash = PasswordManager.hash_password(password)
+    # ---------------- UPDATE ----------------
+    if selected_user_id:
 
-        session.commit()
+        result = update_user(
+            selected_user_id,
+            username,
+            password,
+            role
+        )
 
-        return {
-            "success": True,
-            "message": "User updated successfully"
-        }
+        success_msg = "User updated successfully"
 
-    except Exception as e:
-        session.rollback()
-        print(e)
+    # ---------------- CREATE ----------------
+    else:
 
-        return {
-            "success": False,
-            "message": str(e)
-        }
+        result = register_user(
+            username=username,
+            email=f"{username}@company.com",
+            name=username,
+            password=password,
+            role_id=role
+        )
 
-    finally:
-        session.close()
+        success_msg = "User created successfully"
 
+    if not result["success"]:
+        return dbc.Alert(result["message"], color="danger"), dash.no_update
 
+    users = get_all_users()
 
-from werkzeug.security import generate_password_hash
+    rows = []
+
+    for user in users:
+
+        rows.append({
+
+            "user_id": user["user_id"],
+            "action": "✏️",
+            "username": user["username"],
+            "role": user["role"],
+            "status": "🟢 Active" if user["is_active"] else "⚪ Inactive",
+            "is_active": user["is_active"]
+
+        })
+
+    return dbc.Alert(success_msg, color="success"), rows
