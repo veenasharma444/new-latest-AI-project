@@ -1,1 +1,150 @@
+/* ==========================================================
+   USER MASTER PAGE
+========================================================== */
 
+/* Page */
+.container-fluid {
+    background: #f5f7fb;
+}
+
+/* Cards */
+.card {
+    border: 1px solid #e9ecef !important;
+    border-radius: 14px !important;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.06);
+}
+
+/* Labels */
+.form-label {
+    font-weight: 600;
+    font-size: 14px;
+    color: #444;
+    margin-bottom: 8px;
+}
+
+/* Inputs */
+.user-input,
+.user-input.form-control,
+.user-input.form-select {
+    height: 46px;
+    border-radius: 8px;
+    border: 1px solid #d9d9d9;
+    font-size: 14px;
+    box-shadow: none;
+}
+
+.user-input:focus {
+    border-color: #1677ff;
+    box-shadow: 0 0 0 .15rem rgba(22,119,255,.15);
+}
+
+/* Password eye */
+.input-group-text {
+    background: white;
+    border-left: none;
+    cursor: pointer;
+}
+
+.input-group .form-control {
+    border-right: none;
+}
+
+/* Button */
+.create-user-btn {
+    width: 100%;
+    height: 46px;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+}
+
+/* Heading */
+h2 {
+    font-size: 30px;
+    font-weight: 700;
+    color: #222;
+}
+
+h5 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #222;
+}
+
+/* Table Header */
+.table-header {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 14px 12px;
+    font-weight: 600;
+    color: #666;
+    border: 1px solid #ececec;
+}
+
+/* User rows */
+#users-list .row {
+    min-height: 62px;
+    align-items: center;
+    border-bottom: 1px solid #ececec;
+    padding-top: 12px;
+    padding-bottom: 12px;
+    transition: .2s;
+}
+
+#users-list .row:hover {
+    background: #fafafa;
+}
+
+/* Username */
+#users-list span {
+    font-size: 15px;
+    font-weight: 500;
+}
+
+/* Role badge */
+.role-badge {
+    background: #e8f3ff;
+    color: #1677ff;
+    border: 1px solid #b7d6ff;
+    border-radius: 30px;
+    padding: 6px 16px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.badge {
+    border-radius: 20px !important;
+    padding: 7px 16px !important;
+    font-size: 13px !important;
+}
+
+/* Edit button */
+.btn-link {
+    color: #6c757d !important;
+    font-size: 18px !important;
+    text-decoration: none !important;
+    padding: 0 !important;
+}
+
+.btn-link:hover {
+    color: #1677ff !important;
+}
+
+/* Toggle */
+.form-check-input {
+    cursor: pointer;
+    transform: scale(1.1);
+}
+
+/* Horizontal line */
+hr {
+    margin-top: .75rem;
+    margin-bottom: .75rem;
+    border-color: #ececec;
+}
+
+/* Success message */
+.alert {
+    border-radius: 8px;
+    font-size: 14px;
+}
