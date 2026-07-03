@@ -1,183 +1,138 @@
-from dash import html, dcc, dash_table
-import dash_bootstrap_components as dbc
+def display_page(pathname, df_json, profiles_dict,  objective_data, config_dict, ai_suggestions, session_data, store_kpi_data, store_filter_data):
+    """Route to appropriate page based on URL and authentication"""
+    if not pathname or pathname == '':
+        pathname = '/'
 
+    pathname = str(pathname).strip()
+    
+    session_data = session_data or {}
+    is_authenticated = session_data.get("is_authenticated", False)
+    role_id = session_data.get("role_id")
 
-def generate_users_page():
+    #  Block all pages except /auth if not authenticated
+    if pathname != '/auth' and not is_authenticated:
+        return page_auth.generate_auth_page()
 
-    return dbc.Container([
+    #  Redirect authenticated users away from /auth page
+    if pathname == '/auth' and is_authenticated:
+        if role_id == 1:
+            from pages import page_companies
+            return page_companies.generate_companies_page()
+        elif role_id == 2:
+            return page_upload.generate_upload_page()
+   
+    try:
+        # Show auth page
+        if pathname == '/auth' or pathname == '/login' or pathname == '/':
+            return page_auth.generate_auth_page()
 
-        html.H2(
-            "User Master",
-            style={
-                "fontWeight": "700",
-                "marginBottom": "25px"
-            }
-        ),
+        # Check data for other routes
+        if not df_json or not profiles_dict:
+            return html.Div(
+                [
+                    html.H3("Error: Data not initialized"),
+                    html.P("Please refresh the page."),
+                ],
+                style={'padding': '20px', 'textAlign': 'center', 'color': 'red'}
+            )
 
-        dbc.Card(
+        current_df = get_cached_dataframe()
+        if current_df is None:
+            return html.Div(
+                [html.H3("Error: Data not loaded"), html.P("Check server logs.")],
+                style={'padding': '20px', 'color': 'red'}
+            )
 
-            dbc.CardBody([
+        current_profiles = load_cached_profiles()
+        if not current_profiles:
+            return html.Div(
+                [html.H3("Error: Profiles not available"), html.P("Check server logs.")],
+                style={'padding': '20px', 'color': 'red'}
+            )
 
-                dbc.Row([
+        confirmed_dtypes = session_data.get('confirmed_dtypes', {})
+        if not confirmed_dtypes:
+            confirmed_dtypes = {}
+            for col, profile_data in current_profiles.items():
+                confirmed_dtypes[col] = profile_data.get('dtype', 'categorical')
 
-                    dbc.Col([
+        # Route to pages
+        if pathname == '/upload':
+            if role_id != 2:
+                return html.H3("Access Denied")
+            return page_upload.generate_upload_page()
 
-                        dbc.Label("Name"),
+        elif pathname == '/config':
+            if role_id != 2:
+                return html.H3("Access Denied")
+            return page_config.generate_config_page(current_df, current_profiles, confirmed_dtypes)
 
-                        dcc.Input(
-                            id="user-name",
-                            type="text",
-                            placeholder="Enter Name",
-                            style={
-                                "width": "100%"
-                            }
-                        )
+        elif pathname == '/dashboard':
+            if role_id != 2:
+                return html.H3("Access Denied")
+            # Give priority to loaded dashboard values
+            kpi_selections = session_data.get('kpi_selections', store_kpi_data or [])
+            filter_selections = session_data.get('filter_selections', store_filter_data or [])
 
-                    ], md=4),
+            print("=" *80)
+            print("DASHBOARD PAGE")
+            print("AI_SUGGESTIONS TYPE:", type(ai_suggestions))
+            print("AI_SUGGESTIONS:", ai_suggestions)
+            print("=" * 80)
+            
 
-                    dbc.Col([
-
-                        dbc.Label("Username"),
-
-                        dcc.Input(
-                            id="user-username",
-                            type="text",
-                            placeholder="Enter Username",
-                            style={
-                                "width": "100%"
-                            }
-                        )
-
-                    ], md=4),
-
-                    dbc.Col([
-
-                        dbc.Label("Email"),
-
-                        dcc.Input(
-                            id="user-email",
-                            type="email",
-                            placeholder="Enter Email",
-                            style={
-                                "width": "100%"
-                            }
-                        )
-
-                    ], md=4),
-
-                ], className="mb-3"),
-
-                dbc.Row([
-
-                    dbc.Col([
-
-                        dbc.Label("Password"),
-
-                        dcc.Input(
-                            id="user-password",
-                            type="password",
-                            placeholder="Enter Password",
-                            style={
-                                "width": "100%"
-                            }
-                        )
-
-                    ], md=4),
-
-                    dbc.Col([
-
-                        dbc.Label("Role"),
-
-                        dcc.Dropdown(
-                            id="user-role",
-                            options=[
-                                {
-                                    "label": "Admin",
-                                    "value": 1
-                                },
-                                {
-                                    "label": "User",
-                                    "value": 2
-                                }
-                            ],
-                            placeholder="Select Role"
-                        )
-
-                    ], md=4),
-
-                    dbc.Col([
-
-                        dbc.Button(
-                            "Create User",
-                            id="btn-create-user",
-                            color="primary",
-                            style={
-                                "marginTop": "31px",
-                                "width": "100%"
-                            }
-                        )
-
-                    ], md=4),
-
-                ]),
-
-                html.Br(),
-
-                html.Div(id="user-create-message")
-
-            ])
-
-        ),
-
-        html.Br(),
-
-        dbc.Card(
-
-            dbc.CardBody([
-
-                html.H4("User List"),
-
-                html.Br(),
-
-                dash_table.DataTable(
-
-                    id="users-table",
-
-                    columns=[
-                        {"name": "Name", "id": "name"},
-                        {"name": "Username", "id": "username"},
-                        {"name": "Email", "id": "email"},
-                        {"name": "Role", "id": "role"},
-                        {"name": "Status", "id": "status"},
-                    ],
-
-                    data=[],
-
-                    page_size=10,
-
-                    style_table={
-                        "overflowX": "auto"
-                    },
-
-                    style_cell={
-                        "textAlign": "left",
-                        "padding": "10px",
-                        "fontFamily": "Segoe UI"
-                    },
-
-                    style_header={
-                        "fontWeight": "bold",
-                        "backgroundColor": "#F5F7FA"
-                    },
-
-                    style_data={
-                        "backgroundColor": "white"
-                    }
-
+            # llm_analysis = None
+            # if config_dict:
+            #     llm_analysis = AnalysisFormatter.format_analysis(
+            #         type('DashboardConfig', (), config_dict)() if isinstance(config_dict, dict) else config_dict
+            #     )
+            
+            effective_config = ai_suggestions or config_dict
+            
+            llm_analysis = None
+            if effective_config:
+                llm_analysis = AnalysisFormatter.format_analysis(
+                    type('DashboardConfig', (), effective_config)() if isinstance(effective_config, dict) else effective_config
                 )
 
-            ])
+            result = page_dashboard.generate_dashboard_page(
+                current_df,
+                kpi_selections=kpi_selections,
+                filter_selections=filter_selections,
+                confirmed_dtypes=confirmed_dtypes,
+                llm_analysis=llm_analysis
+            )
+            return result
+        
+        elif pathname == '/data-review':
+            if role_id != 2:
+                return html.H3("Access Denied")
+            return page_data_review.generate_data_review_page(current_df, current_profiles)
+        
+        elif pathname == "/admin":
+            return admin_dashboard_layout()
 
+        elif pathname == '/companies':
+            if role_id != 1:
+                return html.H3("Access Denied")
+            from pages import page_companies
+            return page_companies.generate_companies_page()
+        
+        elif pathname == '/mapping':
+            if role_id != 1:
+                return html.H3("Access Denied")
+
+            from pages import page_user_company
+            return page_user_company.generate_mapping_page()
+
+        else:
+            return page_auth.generate_auth_page()
+
+    except Exception as e:
+        import traceback
+        print(f"[ERROR] display_page: {type(e).__name__}: {e}\n{traceback.format_exc()}")
+        return html.Div(
+            [html.H3("Error loading page"), html.P("Check server logs.")],
+            style={'padding': '20px', 'backgroundColor': '#ffeeee', 'color': '#cc0000'}
         )
 
-    ], fluid=True)
