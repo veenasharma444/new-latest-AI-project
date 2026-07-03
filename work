@@ -1,1 +1,37 @@
+html.H5(
+    "User List",
+    className="fw-bold mb-3"
+),
 
+html.Table(
+
+    [
+
+        html.Thead(
+
+            html.Tr(
+
+                [
+
+                    html.Th("Action"),
+                    html.Th("Username"),
+                    html.Th("Role"),
+                    html.Th("Toggle Status")
+
+                ]
+
+            )
+
+        ),
+
+        html.Tbody(
+
+            id="users-list"
+
+        )
+
+    ],
+
+    className="table user-master-table"
+
+)
