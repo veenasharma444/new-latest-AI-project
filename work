@@ -1,1 +1,113 @@
+import dash
+from dash import Input, Output, State
+from dash.exceptions import PreventUpdate
+import dash_bootstrap_components as dbc
+
+from core.auth import (
+    register_user,
+    get_all_users,
+)
+
+
+
+def register_users_callbacks(app):
+
+    @app.callback(
+        Output("users-table", "data"),
+        Input("url", "pathname")
+    )
+    def load_users(pathname):
+
+        if pathname != "/users":
+            raise PreventUpdate
+
+        users = get_all_users()
+
+        rows = []
+
+        for user in users:
+
+            rows.append({
+
+                "user_id": user["user_id"],
+
+                "action": "✏️",
+
+                "username": user["username"],
+
+                "role": user["role"],
+
+                "status": "🟢 Active" if user["is_active"] else "⚪ Inactive"
+
+            })
+
+        return rows
+
+///////
+    @app.callback(
+
+        Output("create-user-msg", "children"),
+
+        Output("users-table", "data", allow_duplicate=True),
+
+        Input("btn-create-user", "n_clicks"),
+
+        State("user-username", "value"),
+
+        State("user-password", "value"),
+
+        State("user-role", "value"),
+
+        prevent_initial_call=True
+
+    )
+
+    def create_user(n, username, password, role):
+
+        if not n:
+            raise PreventUpdate
+
+        result = register_user(
+
+            username=username,
+
+            email=f"{username}@company.com",
+
+            name=username,
+
+            password=password,
+
+            role_id=role
+
+        )
+
+        if not result["success"]:
+
+            return dbc.Alert(result["message"], color="danger"), dash.no_update
+
+        users = get_all_users()
+
+        rows = []
+
+        for user in users:
+
+            rows.append({
+
+                "user_id": user["user_id"],
+
+                "action": "✏️",
+
+                "username": user["username"],
+
+                "role": user["role"],
+
+                "status": "🟢 Active" if user["is_active"] else "⚪ Inactive"
+
+            })
+
+        return dbc.Alert("User created successfully", color="success"), rows
+
+
+///
+from callbacks.users_callbacks import register_users_callbacks
 
