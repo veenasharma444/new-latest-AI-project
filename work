@@ -1,1 +1,183 @@
+from dash import html, dcc, dash_table
+import dash_bootstrap_components as dbc
 
+
+def generate_users_page():
+
+    return dbc.Container([
+
+        html.H2(
+            "User Master",
+            style={
+                "fontWeight": "700",
+                "marginBottom": "25px"
+            }
+        ),
+
+        dbc.Card(
+
+            dbc.CardBody([
+
+                dbc.Row([
+
+                    dbc.Col([
+
+                        dbc.Label("Name"),
+
+                        dcc.Input(
+                            id="user-name",
+                            type="text",
+                            placeholder="Enter Name",
+                            style={
+                                "width": "100%"
+                            }
+                        )
+
+                    ], md=4),
+
+                    dbc.Col([
+
+                        dbc.Label("Username"),
+
+                        dcc.Input(
+                            id="user-username",
+                            type="text",
+                            placeholder="Enter Username",
+                            style={
+                                "width": "100%"
+                            }
+                        )
+
+                    ], md=4),
+
+                    dbc.Col([
+
+                        dbc.Label("Email"),
+
+                        dcc.Input(
+                            id="user-email",
+                            type="email",
+                            placeholder="Enter Email",
+                            style={
+                                "width": "100%"
+                            }
+                        )
+
+                    ], md=4),
+
+                ], className="mb-3"),
+
+                dbc.Row([
+
+                    dbc.Col([
+
+                        dbc.Label("Password"),
+
+                        dcc.Input(
+                            id="user-password",
+                            type="password",
+                            placeholder="Enter Password",
+                            style={
+                                "width": "100%"
+                            }
+                        )
+
+                    ], md=4),
+
+                    dbc.Col([
+
+                        dbc.Label("Role"),
+
+                        dcc.Dropdown(
+                            id="user-role",
+                            options=[
+                                {
+                                    "label": "Admin",
+                                    "value": 1
+                                },
+                                {
+                                    "label": "User",
+                                    "value": 2
+                                }
+                            ],
+                            placeholder="Select Role"
+                        )
+
+                    ], md=4),
+
+                    dbc.Col([
+
+                        dbc.Button(
+                            "Create User",
+                            id="btn-create-user",
+                            color="primary",
+                            style={
+                                "marginTop": "31px",
+                                "width": "100%"
+                            }
+                        )
+
+                    ], md=4),
+
+                ]),
+
+                html.Br(),
+
+                html.Div(id="user-create-message")
+
+            ])
+
+        ),
+
+        html.Br(),
+
+        dbc.Card(
+
+            dbc.CardBody([
+
+                html.H4("User List"),
+
+                html.Br(),
+
+                dash_table.DataTable(
+
+                    id="users-table",
+
+                    columns=[
+                        {"name": "Name", "id": "name"},
+                        {"name": "Username", "id": "username"},
+                        {"name": "Email", "id": "email"},
+                        {"name": "Role", "id": "role"},
+                        {"name": "Status", "id": "status"},
+                    ],
+
+                    data=[],
+
+                    page_size=10,
+
+                    style_table={
+                        "overflowX": "auto"
+                    },
+
+                    style_cell={
+                        "textAlign": "left",
+                        "padding": "10px",
+                        "fontFamily": "Segoe UI"
+                    },
+
+                    style_header={
+                        "fontWeight": "bold",
+                        "backgroundColor": "#F5F7FA"
+                    },
+
+                    style_data={
+                        "backgroundColor": "white"
+                    }
+
+                )
+
+            ])
+
+        )
+
+    ], fluid=True)
