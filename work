@@ -1,37 +1,49 @@
-html.H5(
-    "User List",
-    className="fw-bold mb-3"
-),
+def load_users(pathname):
 
-html.Table(
+        if pathname != "/users":
+            raise PreventUpdate
+        
+        users = get_all_users()
+        children = []
+        for user in users:
 
-    [
+            children.append(
+                dbc.Row(
+                    [
+                        dbc.Col(
+                            html.Button(
+                                "✏️",
+                                id={
+                                    "type": "edit-user",
+                                    "index": user["user_id"]
+                                },
+                                className="btn btn-link"
+                            ),
+                            width=1
+                        ),
 
-        html.Thead(
+                        dbc.Col(user["username"], width=4),
+                        dbc.Col(
+                            dbc.Badge(
+                                user["role"],
+                                color="primary"
+                            ),
+                            width=2
+                        ),
+                        dbc.Col(
+                            dbc.Switch(
+                                id={
+                                    "type": "toggle-user",
+                                    "index": user["user_id"]
+                                },
 
-            html.Tr(
+                                value=user["is_active"]
+                            ),
+                            width=2
+                        )
+                    ],
 
-                [
-
-                    html.Th("Action"),
-                    html.Th("Username"),
-                    html.Th("Role"),
-                    html.Th("Toggle Status")
-
-                ]
-
+                    className="align-items-center border-bottom py-2"
+                )
             )
-
-        ),
-
-        html.Tbody(
-
-            id="users-list"
-
-        )
-
-    ],
-
-    className="table user-master-table"
-
-)
+        return children
