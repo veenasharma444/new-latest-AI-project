@@ -1,166 +1,257 @@
+from functools import wraps
+from flask import redirect, session, url_for
 import dash
-from dash import Input, Output, State
-from dash import html
 from dash.exceptions import PreventUpdate
-import dash_bootstrap_components as dbc
-from core.auth import (register_user, get_all_users, update_user)
 
-def register_users_callbacks(app):
 
-    @app.callback(
-        Output("users-list", "children"),
-        Input("url", "pathname")
-    )
-    
-    def load_users(pathname):
+def login_required(f):
+    """Dash callback decorator to require login"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        # Check if user session exists
+        if 'user_id' not in session:
+            # Redirect to login page
+            return redirect('/login')
+        return f(*args, **kwargs)
+    return decorated_function
 
-        if pathname != "/users":
-            raise PreventUpdate
+
+def admin_required(f):
+    """Dash callback decorator to require admin role"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            return redirect('/login')
         
-        users = get_all_users()
-        children = []
-        for user in users:
-
-            children.append(
-                dbc.Row(
-                    [
-                        dbc.Col(
-                            html.Button(
-                                "✏️",
-                                id={
-                                    "type": "edit-user",
-                                    "index": user["user_id"]
-                                },
-                                className="btn btn-link"
-                            ),
-                            width=1
-                        ),
-
-                        dbc.Col(user["username"], width=4),
-                        dbc.Col(
-                            dbc.Badge(
-                                user["role"],
-                                color="primary"
-                            ),
-                            width=2
-                        ),
-                        dbc.Col(
-                            dbc.Switch(
-                                id={
-                                    "type": "toggle-user",
-                                    "index": user["user_id"]
-                                },
-
-                                value=user["is_active"]
-                            ),
-                            width=2
-                        )
-                    ],
-
-                    className="align-items-center border-bottom py-2"
-                )
-            )
-        return children
-
+        if session.get('is_admin') != True:
+            return redirect('/')  # Unauthorized
         
-    
-    # @app.callback(
-    #     Output("selected-user-id", "data"),
-    #     Output("user-username", "value"),
-    #     Output("user-password", "value"),
-    #     Output("user-role", "value"),
-    #     Output("btn-save-user", "children"),
-    #     Input("users-list", "active_cell"),
-    #     State("users-list", "data"),
-    #     prevent_initial_call=True
-    # )
-    
-    # def edit_user(active_cell, rows):
+        return f(*args, **kwargs)
+    return decorated_function
 
-    #     if not active_cell:
-    #         raise PreventUpdate
+# ═══════════════════════════════════════════════════════════════
+# ORM-BASED AUTH FUNCTIONS (ADD THIS)
+# ═══════════════════════════════════════════════════════════════
 
-    #     if active_cell["column_id"] != "action":
-    #         raise PreventUpdate
+from core.app_db import User
+from core.db_connector import get_session
 
-    #     row = rows[active_cell["row"]]
 
-    #     role = row["role"]
+def register_user(username, email, name, password, role_id):
+    """Register user using ORM"""
+    session = get_session()
 
-    #     if role == "Admin":
-    #         role_id = 1
-    #     else:
-    #         role_id = 2
+    try:
+        username = (username or '').strip()
+        email = (email or '').strip()
 
-    #     return (
-    #         row["user_id"],
-    #         row["username"],
-    #         "",
-    #         role_id,
-    #         "Update User"
-    #     )
-    
-    @app.callback(
+        if session.query(User).filter_by(username=username).first():
+            return {"success": False, "message": "Username already exists"}
 
-        Output("create-user-msg", "children"),
-        Output("users-list", "children", allow_duplicate=True),
-        Input("btn-save-user", "n_clicks"),
-        State("selected-user-id", "data"),
-        State("user-username", "value"),
-        State("user-password", "value"),
-        State("user-role", "value"),
-        prevent_initial_call=True
+        if session.query(User).filter_by(email=email).first():
+            return {"success": False, "message": "Email already registered"}
 
-    )
-# Create callback
-    def save_user(n, selected_user_id, username, password, role):
+        pwd_hash = PasswordManager.hash_password(password)
 
-        if not n:
-            raise PreventUpdate
+        name_parts = (name or "").strip().split()
+        full_name = name.strip()
 
-        # ---------------- UPDATE ----------------
-        if selected_user_id:
+        user = User(
+            username=username,
+            email=email,
+            name=full_name,   # ✅ use single column
+            password_hash=pwd_hash,
+            role_id=role_id,   # ✅ ADD THIS LINE
+            is_active=True,
+        )
 
-            result = update_user(
-                selected_user_id,
-                username,
-                password,
-                role
-            )
+        session.add(user)
+        session.commit()
 
-            success_msg = "User updated successfully"
+        print(f"[OK] User registered: {username}")
 
-        # ---------------- CREATE ----------------
-        else:
+        return {
+            "success": True,
+            "message": "User registered successfully",
+            "user_id": user.user_id
+        }
 
-            result = register_user(
-                username=username,
-                email=f"{username}@company.com",
-                name=username,
-                password=password,
-                role_id=role
-            )
+    except Exception as e:
+        session.rollback()
+        print(f"[ERROR] register_user: {e}")
+        return {"success": False, "message": "Registration failed. Please try again."}
 
-            success_msg = "User created successfully"
+    finally:
+        session.close()
 
-        if not result["success"]:
-            return dbc.Alert(result["message"], color="danger"), dash.no_update
 
-        users = get_all_users()
+def authenticate_user(username, password):
+    """Authenticate user using ORM"""
+    session = get_session()
 
-        rows = []
+    try:
+        username = (username or '').strip()
+
+        print(f"[AUTH] Login attempt: {username}")
+
+        user = session.query(User).filter_by(username=username).first()
+
+        if not user:
+            return {"success": False, "message": "Invalid username or password"}
+
+        if not user.is_active:
+            return {"success": False, "message": "Account is inactive"}
+
+        if not PasswordManager.verify_password(password, user.password_hash):
+            return {"success": False, "message": "Invalid username or password"}
+
+        print(f"[OK] Login success: {username}")
+
+        return {
+            "success": True,
+            "user_data": {
+                "id": user.user_id,
+                "username": user.username,
+                "email": user.email,
+                "name": user.name or user.username,
+                "role_id": user.role_id   # ✅ ADD THIS
+            }
+        }
+
+    finally:
+        session.close()
+
+
+
+def logout_user():
+    """Simple logout handler"""
+    return True
+
+
+#--------------------------------------
+# USER MANAGEMENT FUNCTIONS
+#--------------------------------------
+
+from core.app_db import User, Role
+from core.db_connector import get_session
+
+
+def get_all_users():
+    session = get_session()
+
+    try:
+        users = (
+            session.query(User)
+            .outerjoin(Role)
+            .all()
+        )
+
+        data = []
 
         for user in users:
-
-            rows.append({
-
-                "user_id": user["user_id"],
+            data.append({
+                "user_id": user.user_id,
                 "action": "✏️",
-                "username": user["username"],
-                "role": user["role"],
-                "status": "🟢 ON" if user["is_active"] else "⚪ OFF",
-                "is_active": user["is_active"]
-
+                "username": user.username,
+                "role": user.role.role_name if user.role else "",
+                "is_active": user.is_active
             })
 
-        return dbc.Alert(success_msg, color="success"), rows
+        return data
+
+    finally:
+        session.close()
+
+
+def update_user(user_id, username, password, role_id):
+    session = get_session()
+
+    try:
+        user = session.query(User).filter_by(user_id=user_id).first()
+
+        if not user:
+            return {
+                "success": False,
+                "message": "User not found"
+            }
+
+        user.username = username
+        user.role_id = role_id
+
+        if password:
+            user.password_hash = PasswordManager.hash_password(password)
+
+        session.commit()
+
+        return {
+            "success": True,
+            "message": "User updated successfully"
+        }
+
+    except Exception as e:
+        session.rollback()
+        print(e)
+
+        return {
+            "success": False,
+            "message": str(e)
+        }
+
+    finally:
+        session.close()
+
+
+
+# update user role
+
+def update_user_status(user_id, status):
+    session = get_session()
+
+    try:
+        user = session.query(User).filter_by(user_id=user_id).first()
+
+        if user:
+            user.is_active = status
+            session.commit()
+
+        return True
+
+    except Exception:
+        session.rollback()
+        return False
+
+    finally:
+        session.close()
+
+
+# update user status
+
+def update_user(user_id, username, password, role_id):
+    session = get_session()
+
+    try:
+
+        user = session.query(User).filter_by(user_id=user_id).first()
+
+        if not user:
+            return False
+
+        user.username = username
+
+        if password:
+            user.password_hash = PasswordManager.hash_password(password)
+
+        user.role_id = role_id
+
+        session.commit()
+
+        return True
+
+    except Exception:
+
+        session.rollback()
+        return False
+
+    finally:
+
+        session.close()
