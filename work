@@ -1,138 +1,212 @@
-from core.app_db import User, Role
-from core.db_connector import get_session
+def generate_users_page():
 
+    return dbc.Container(
 
-def get_all_users():
-    session = get_session()
+        [
 
-    try:
-        users = (
-            session.query(User)
-            .outerjoin(Role)
-            .all()
-        )
+            html.H2(
+                "User Master",
+                style={
+                    "fontWeight": "700",
+                    "marginBottom": "25px"
+                }
+            ),
 
-        data = []
+            dbc.Card(
 
-        for user in users:
-            data.append({
-                "user_id": user.user_id,
-                "action": "✏️",
-                "username": user.username,
-                "role": user.role.role_name if user.role else "",
-                "status": user.is_active
-            })
+                dbc.CardBody(
 
-        return data
+                    [
 
-    finally:
-        session.close()
+                        dbc.Row(
 
+                            [
 
+                                dbc.Col(
 
-///////////////
+                                    [
 
-def update_user_status(user_id, status):
-    session = get_session()
+                                        dbc.Label("Username"),
 
-    try:
-        user = session.query(User).filter_by(user_id=user_id).first()
+                                        dbc.Input(
+                                            id="user-username",
+                                            placeholder="Username",
+                                            type="text"
+                                        )
 
-        if user:
-            user.is_active = status
-            session.commit()
+                                    ],
 
-        return True
+                                    md=4
 
-    except Exception:
-        session.rollback()
-        return False
+                                ),
 
-    finally:
-        session.close()
+                                dbc.Col(
 
-//////////////////
+                                    [
 
-def update_user(user_id, username, password, role_id):
-    session = get_session()
+                                        dbc.Label("Password"),
 
-    try:
+                                        dbc.Input(
+                                            id="user-password",
+                                            placeholder="Password",
+                                            type="password"
+                                        )
 
-        user = session.query(User).filter_by(user_id=user_id).first()
+                                    ],
 
-        if not user:
-            return False
+                                    md=4
 
-        user.username = username
+                                ),
 
-        if password:
-            user.password_hash = PasswordManager.hash_password(password)
+                                dbc.Col(
 
-        user.role_id = role_id
+                                    [
 
-        session.commit()
+                                        dbc.Label("Role"),
 
-        return True
+                                        dbc.Select(
 
-    except Exception:
+                                            id="user-role",
 
-        session.rollback()
-        return False
+                                            options=[
 
-    finally:
+                                                {
+                                                    "label": "User",
+                                                    "value": 2
+                                                },
 
-        session.close()
+                                                {
+                                                    "label": "Admin",
+                                                    "value": 1
+                                                }
 
+                                            ],
 
+                                            value=2
 
+                                        )
 
+                                    ],
 
+                                    md=3
 
-from dash import Input, Output, State, callback
-from dash.exceptions import PreventUpdate
+                                ),
 
-from core.auth import register_user
-from core.app_db import User, Role
-from core.db_connector import get_session
+                                dbc.Col(
 
-//////
-@app.callback(
+                                    [
 
-    Output("users-table", "data"),
+                                        dbc.Button(
 
-    Input("btn-create-user", "n_clicks"),
+                                            "Create User",
 
-    State("user-username", "value"),
-    State("user-password", "value"),
-    State("user-role", "value"),
+                                            id="btn-create-user",
 
-    prevent_initial_call=True
-)
-def create_user(n, username, password, role):
+                                            color="primary",
 
-    if not n:
-        raise PreventUpdate
+                                            style={
 
-    register_user(
-        username=username,
-        email=f"{username}@dummy.com",
-        name=username,
-        password=password,
-        role_id=role
+                                                "marginTop": "32px",
+
+                                                "width": "100%"
+
+                                            }
+
+                                        )
+
+                                    ],
+
+                                    md=1
+
+                                )
+
+                            ]
+
+                        )
+
+                    ]
+
+                )
+
+            ),
+
+            html.Br(),
+
+            dbc.Card(
+
+                dbc.CardBody(
+
+                    [
+
+                        html.H4("User List"),
+
+                        DataTable(
+
+                            id="users-table",
+
+                            columns=[
+
+                                {
+                                    "name": "Action",
+                                    "id": "action",
+                                    "presentation": "markdown"
+                                },
+
+                                {
+                                    "name": "Username",
+                                    "id": "username"
+                                },
+
+                                {
+                                    "name": "Role",
+                                    "id": "role"
+                                },
+
+                                {
+                                    "name": "Toggle Status",
+                                    "id": "status"
+                                }
+
+                            ],
+
+                            data=[],
+
+                            style_table={
+                                "overflowX": "auto"
+                            },
+
+                            style_cell={
+
+                                "textAlign": "left",
+
+                                "padding": "12px"
+
+                            },
+
+                            style_header={
+
+                                "fontWeight": "bold",
+
+                                "backgroundColor": "#f8f9fa"
+
+                            }
+
+                        )
+
+                    ]
+
+                )
+
+            )
+
+        ],
+
+        fluid=True,
+
+        style={
+
+            "padding": "25px"
+
+        }
+
     )
-
-    return get_all_users()
-
-/////////
-@app.callback(
-    Output("users-table", "data"),
-    Input("url", "pathname")
-)
-def load_users(path):
-
-    if path != "/users":
-        raise PreventUpdate
-
-    return get_all_users()
-
-
