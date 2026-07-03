@@ -1,38 +1,39 @@
 children.append(
-    html.Tr(
-        [
+                    html.Tr(
+                        [
 
-            html.Td(
-                html.Button(
-                    "✏️",
-                    id={
-                        "type": "edit-user",
-                        "index": user["user_id"]
-                    },
-                    className="btn btn-link edit-btn"
+                            html.Td(
+                                html.Button(
+                                    "✏️",
+                                    id={
+                                        "type": "edit-user",
+                                        "index": user["user_id"]
+                                    },
+                                    className="btn btn-link edit-btn"
+                                )
+                            ),
+
+                            html.Td(user["username"]),
+
+                            html.Td(
+                                dbc.Badge(
+                                    user["role"],
+                                    color="primary",
+                                    pill=True
+                                )
+                            ),
+
+                            html.Td(
+                                dbc.Switch(
+                                    id={
+                                        "type": "toggle-user",
+                                        "index": user["user_id"]
+                                    },
+                                    value=user["is_active"]
+                                )
+                            )
+
+                        ]
+                    )
                 )
-            ),
-
-            html.Td(user["username"]),
-
-            html.Td(
-                dbc.Badge(
-                    user["role"],
-                    color="primary",
-                    pill=True
-                )
-            ),
-
-            html.Td(
-                dbc.Switch(
-                    id={
-                        "type": "toggle-user",
-                        "index": user["user_id"]
-                    },
-                    value=user["is_active"]
-                )
-            )
-
-        ]
-    )
-)
+        return children
