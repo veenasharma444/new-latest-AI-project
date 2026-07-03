@@ -1,1 +1,138 @@
+from core.app_db import User, Role
+from core.db_connector import get_session
+
+
+def get_all_users():
+    session = get_session()
+
+    try:
+        users = (
+            session.query(User)
+            .outerjoin(Role)
+            .all()
+        )
+
+        data = []
+
+        for user in users:
+            data.append({
+                "user_id": user.user_id,
+                "action": "✏️",
+                "username": user.username,
+                "role": user.role.role_name if user.role else "",
+                "status": user.is_active
+            })
+
+        return data
+
+    finally:
+        session.close()
+
+
+
+///////////////
+
+def update_user_status(user_id, status):
+    session = get_session()
+
+    try:
+        user = session.query(User).filter_by(user_id=user_id).first()
+
+        if user:
+            user.is_active = status
+            session.commit()
+
+        return True
+
+    except Exception:
+        session.rollback()
+        return False
+
+    finally:
+        session.close()
+
+//////////////////
+
+def update_user(user_id, username, password, role_id):
+    session = get_session()
+
+    try:
+
+        user = session.query(User).filter_by(user_id=user_id).first()
+
+        if not user:
+            return False
+
+        user.username = username
+
+        if password:
+            user.password_hash = PasswordManager.hash_password(password)
+
+        user.role_id = role_id
+
+        session.commit()
+
+        return True
+
+    except Exception:
+
+        session.rollback()
+        return False
+
+    finally:
+
+        session.close()
+
+
+
+
+
+
+from dash import Input, Output, State, callback
+from dash.exceptions import PreventUpdate
+
+from core.auth import register_user
+from core.app_db import User, Role
+from core.db_connector import get_session
+
+//////
+@app.callback(
+
+    Output("users-table", "data"),
+
+    Input("btn-create-user", "n_clicks"),
+
+    State("user-username", "value"),
+    State("user-password", "value"),
+    State("user-role", "value"),
+
+    prevent_initial_call=True
+)
+def create_user(n, username, password, role):
+
+    if not n:
+        raise PreventUpdate
+
+    register_user(
+        username=username,
+        email=f"{username}@dummy.com",
+        name=username,
+        password=password,
+        role_id=role
+    )
+
+    return get_all_users()
+
+/////////
+@app.callback(
+    Output("users-table", "data"),
+    Input("url", "pathname")
+)
+def load_users(path):
+
+    if path != "/users":
+        raise PreventUpdate
+
+    return get_all_users()
+
 
