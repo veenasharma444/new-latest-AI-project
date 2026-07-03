@@ -1,1 +1,38 @@
+.user-master-table{
+    width:100%;
+    border-collapse:collapse;
+}
 
+.user-master-table thead{
+    background:#fafafa;
+}
+
+.user-master-table th{
+    padding:16px;
+    font-size:14px;
+    font-weight:600;
+    color:#555;
+    border-bottom:1px solid #ececec;
+    text-align:left;
+}
+
+.user-master-table td{
+    padding:16px;
+    vertical-align:middle;
+    border-bottom:1px solid #f0f0f0;
+}
+
+.user-master-table tbody tr:hover{
+    background:#fafafa;
+}
+
+.edit-btn{
+    border:none;
+    background:none;
+    color:#888;
+    font-size:18px;
+}
+
+.edit-btn:hover{
+    color:#1677ff;
+}
