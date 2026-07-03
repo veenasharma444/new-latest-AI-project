@@ -1,34 +1,36 @@
-@app.callback(
-    Output("selected-user-id", "data"),
-    Output("user-username", "value"),
-    Output("user-password", "value"),
-    Output("user-role", "value"),
-    Output("btn-save-user", "children"),
-    Input("users-table", "active_cell"),
-    State("users-table", "data"),
-    prevent_initial_call=True
-)
-def edit_user(active_cell, rows):
+def save_user(n, selected_user_id, username, password, role):
 
-    if not active_cell:
-        raise PreventUpdate
+        if not n:
+            raise PreventUpdate
 
-    if active_cell["column_id"] != "action":
-        raise PreventUpdate
+        result = register_user(
 
-    row = rows[active_cell["row"]]
+            username=username,
+            email=f"{username}@company.com",
+            name=username,
+            password=password,
+            role_id=role
 
-    role = row["role"]
+        )
 
-    if role == "Admin":
-        role_id = 1
-    else:
-        role_id = 2
+        if not result["success"]:
 
-    return (
-        row["user_id"],
-        row["username"],
-        "",
-        role_id,
-        "Update User"
-    )
+            return dbc.Alert(result["message"], color="danger"), dash.no_update
+
+        users = get_all_users()
+
+        rows = []
+
+        for user in users:
+
+            rows.append({
+
+                "user_id": user["user_id"],
+                "action": "✏️",
+                "username": user["username"],
+                "role": user["role"],
+                "status": "🟢 Active" if user["is_active"] else "⚪ Inactive"
+
+            })
+
+        return dbc.Alert("User created successfully", color="success"), rows
