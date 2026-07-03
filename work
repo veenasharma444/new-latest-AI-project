@@ -1,147 +1,52 @@
-from dash import html, dcc
-import dash_bootstrap_components as dbc
-from dash.dash_table import DataTable
+@app.callback(
+        Output("users-list", "data"),
+        Input("url", "pathname")
+    )
+    
+    def load_users(pathname):
 
+        if pathname != "/users":
+            raise PreventUpdate
+        
+        users = get_all_users()
+        children = []
+        for user in users:
 
-def generate_users_page():
-
-    return dbc.Container(
-        [
-            dcc.Store(
-                id="selected-user-id",
-            ),
-            html.H2(
-                "User Master",
-                style={
-                    "fontWeight": "700",
-                    "marginBottom": "25px"
-                }
-            ),
-
-            dbc.Card(
-                dbc.CardBody(
+            children.append(
+                dbc.Row(
                     [
-                        dbc.Row(
-                            [
-                                dbc.Col(
-                                    [
-                                        dbc.Label("Username"),
-                                        dbc.Input(
-                                            id="user-username",
-                                            placeholder="Username",
-                                            type="text"
-                                        )
-                                    ],
-                                    md=4
-                                ),
-                                dbc.Col(
-                                    [
-                                        dbc.Label("Password"),
-                                        dbc.Input(
-                                            id="user-password",
-                                            placeholder="Password",
-                                            type="password"
-                                        )
-                                    ],
-                                    md=4
-                                ),
-                                dbc.Col(
-                                    [
-                                        dbc.Label("Role"),
-                                        dbc.Select(
-                                            id="user-role",
-                                            options=[
-                                                {
-                                                    "label": "User",
-                                                    "value": 2
-                                                },
+                        dbc.Col(
+                            html.Button(
+                                "✏️",
+                                id={
+                                    "type": "edit-user",
+                                    "index": user["user_id"]
+                                },
+                                className="btn btn-link"
+                            ),
+                            width=1
+                        ),
+                        dbc.Col(user["username"], width=4),
+                        dbc.Col(
+                            dbc.Badge(
+                                user["role"],
+                                color="primary"
+                            ),
+                            width=2
+                        ),
+                        dbc.Col(
+                            dbc.Switch(
+                                id={
+                                    "type": "toggle-user",
+                                    "index": user["user_id"]
+                                },
 
-                                                {
-                                                    "label": "Admin",
-                                                    "value": 1
-                                                }
-                                            ],
-                                            value=2
-                                        )
-                                    ],
-                                    md=3
-                                ),
-                                dbc.Col(
-                                    [
-                                        dbc.Button(
-                                            "Create User",
-                                            id="btn-save-user",
-                                            color="primary",
-                                            style={
-                                                "marginTop": "32px",
-                                                "width": "100%"
-                                            }
-                                        )
-                                    ],
-                                    md=1
-                                )
-                            ]
+                                value=user["is_active"]
+                            ),
+                            width=2
                         )
-                    ]
-                )
-            ),
+                    ],
 
-            html.Br(),
-            dbc.Card(
-                dbc.CardBody(
-                    [
-                        html.H4("User List"),
-                        DataTable(
-                            id="users-table",
-                            # className="mt-3",
-                            columns=[
-                                {
-                                    "name": "Action",
-                                    "id": "action",
-                                    "presentation": "markdown"
-                                },
-
-                                {
-                                    "name": "Username",
-                                    "id": "username"
-                                },
-
-                                {
-                                    "name": "Role",
-                                    "id": "role"
-                                },
-
-                                {
-                                    "name": "Toggle Status",
-                                    "id": "status",
-                                    "presentation": "markdown"
-                                }
-
-                            ],
-
-                            data=[],
-
-                            style_table={
-                                "overflowX": "auto"
-                            },
-                            style_cell={
-                                "textAlign": "left",
-                                "padding": "12px"
-                            },
-
-                            style_header={
-                                "fontWeight": "bold",
-                                "backgroundColor": "#f8f9fa"
-                            }
-                        )
-                    ]
+                    className="align-items-center border-bottom py-2"
                 )
             )
-        ],
-
-        fluid=True,
-        style={
-            "padding": "25px"
-        }
-
-    )
