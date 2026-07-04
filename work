@@ -1,30 +1,38 @@
+def display_page(pathname, df_json, profiles_dict,  objective_data, config_dict, ai_suggestions, session_data, store_kpi_data, store_filter_data):
+    """Route to appropriate page based on URL and authentication"""
+    if not pathname or pathname == '':
+        pathname = '/'
 
-@app.callback(
-    Output("auth-company-dropdown", "options"),
-    Input("auth-company-dropdown", "id")
-)
-def load_login_companies(_):
+    pathname = str(pathname).strip()
+    
+    session_data = session_data or {}
+    is_authenticated = session_data.get("is_authenticated", False)
+    role_id = session_data.get("role_id")
 
-    from core.db_connector import get_session
-    from core.app_db import Company
+    #  Block all pages except /auth if not authenticated
+    # if pathname != '/auth' and not is_authenticated:
+    #     return page_auth.generate_auth_page()
+    
+    # Block all pages except login pages
+    if pathname not in ['/', '/login', '/admin-login'] and not is_authenticated:
+        return page_user_login.generate_user_login_page()
 
-    session = get_session()
-
+    #  Redirect authenticated users away from /auth page
+    # if pathname == '/auth' and is_authenticated:
+    if pathname in ['/auth', '/login', '/admin-login'] and is_authenticated:
+        if role_id == 1:
+            from pages import page_companies
+            return page_companies.generate_companies_page()
+        elif role_id == 2:
+            return page_upload.generate_upload_page()
+   
     try:
-        companies = (
-            session.query(Company)
-            .filter(Company.is_active == True)
-            .order_by(Company.company_name)
-            .all()
-        )
-
-        return [
-            {
-                "label": c.company_name,
-                "value": c.company_id
-            }
-            for c in companies
-        ]
-
-    finally:
-        session.close()
+        # Show auth page
+        # if pathname == '/auth' or pathname == '/login' or pathname == '/':
+        #     return page_auth.generate_auth_page()
+        
+        if pathname == "/" or pathname == '/login':
+            return page_user_login.generate_user_login_page()
+        
+        elif pathname == '/admin-login':
+            return page_admin_login.generate_admin_login_page()
