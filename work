@@ -1,64 +1,37 @@
-from core.app_db import UserCompany, Company
+from dash import html, dcc
+import dash_bootstrap_components as dbc
 
+def generate_mapping_page():
 
-def get_user_companies(user_id):
-    """Get all companies assigned to a user"""
+    return html.Div([
 
-    session = get_session()
+        html.H2("User Company Mapping", style={'marginBottom': '20px'}),
 
-    try:
+        dbc.Card([
+            dbc.CardBody([
 
-        companies = (
-            session.query(Company)
-            .join(
-                UserCompany,
-                Company.company_id == UserCompany.company_id
-            )
-            .filter(UserCompany.user_id == user_id)
-            .filter(Company.is_active == True)
-            .all()
-        )
+                html.Label("Select User"),
+                dcc.Dropdown(id='mapping-user-dropdown'),
 
-        return [
-            {
-                "company_id": c.company_id,
-                "company_name": c.company_name,
-                "company_code": c.company_code
-            }
-            for c in companies
-        ]
+                html.Br(),
 
-    finally:
-        session.close()
+                html.Label("Select Companies"),
+                dcc.Dropdown(id='mapping-company-dropdown', multi=True),
 
-::/:
-from core.auth import get_user_companies
+                html.Br(),
 
-companies = get_user_companies(
-    result["user_data"]["id"]
-) if result["success"] else []
+                dbc.Button("Assign Companies", id='btn-assign-company', color='primary'),
 
-//:://
-session_data.update({
+                html.Div(id='mapping-msg', style={'marginTop': '10px'})
 
-    "is_authenticated": True,
-    "username": result["user_data"]["username"],
-    "user_id": result["user_data"]["id"],
-    "email": result["user_data"]["email"],
-    "name": result["user_data"]["name"],
-    "role_id": result["user_data"]["role_id"],
+            ])
+        ], className="mb-4"),
 
-    "companies": companies
+        dbc.Card([
+            dbc.CardBody([
+                html.H5("Mappings"),
+                html.Div(id='mapping-table')
+            ])
+        ])
 
-})
-
-/////////;::;:;
-from core.auth import get_user_companies
-
-companies = get_user_companies(
-    result["user_data"]["id"]
-) if result["success"] else []
-
-
-:::;:://///
-
+    ], style={'padding': '20px'})
