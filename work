@@ -1,1 +1,30 @@
 
+@app.callback(
+    Output("auth-company-dropdown", "options"),
+    Input("auth-company-dropdown", "id")
+)
+def load_login_companies(_):
+
+    from core.db_connector import get_session
+    from core.app_db import Company
+
+    session = get_session()
+
+    try:
+        companies = (
+            session.query(Company)
+            .filter(Company.is_active == True)
+            .order_by(Company.company_name)
+            .all()
+        )
+
+        return [
+            {
+                "label": c.company_name,
+                "value": c.company_id
+            }
+            for c in companies
+        ]
+
+    finally:
+        session.close()
