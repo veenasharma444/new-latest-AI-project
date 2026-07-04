@@ -1,35 +1,10 @@
-def authenticate_user(username, password):
-    """Authenticate user using ORM"""
-    session = get_session()
+class UserCompany(Base):
+    __tablename__ = "user_company_master"
 
-    try:
-        username = (username or '').strip()
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.user_id"))
+    company_id = Column(Integer, ForeignKey("company_master.company_id"))
+    assigned_at = Column(DateTime, default=datetime.datetime.utcnow)
 
-        print(f"[AUTH] Login attempt: {username}")
-
-        user = session.query(User).filter_by(username=username).first()
-
-        if not user:
-            return {"success": False, "message": "Invalid username or password"}
-
-        if not user.is_active:
-            return {"success": False, "message": "Account is inactive"}
-
-        if not PasswordManager.verify_password(password, user.password_hash):
-            return {"success": False, "message": "Invalid username or password"}
-
-        print(f"[OK] Login success: {username}")
-
-        return {
-            "success": True,
-            "user_data": {
-                "id": user.user_id,
-                "username": user.username,
-                "email": user.email,
-                "name": user.name or user.username,
-                "role_id": user.role_id   # ✅ ADD THIS
-            }
-        }
-
-    finally:
-        session.close()
+    def __repr__(self):
+        return f"<UserCompany(user_id={self.user_id}, company_id={self.company_id})>"
