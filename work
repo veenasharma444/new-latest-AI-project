@@ -1,68 +1,131 @@
 @app.callback(
     Output('url', 'pathname', allow_duplicate=True),
-    Output('auth-message-container', 'children'),
+    Output('auth-message-container', 'children', allow_duplicate=True),
     Output('session-state', 'data', allow_duplicate=True),
-    Input('auth-btn-signin', 'n_clicks'),
     Input('auth-btn-admin-login', 'n_clicks'),
-    State('auth-signin-username', 'value'),
-    State('auth-signin-password', 'value'),
     State('auth-admin-username', 'value'),
     State('auth-admin-password', 'value'),
     State('session-state', 'data'),
     prevent_initial_call=True
 )
-
-def handle_signin(user_click, admin_click, user_username, user_password, admin_username, admin_password, session_data):
-
-    button = ctx.triggered_id
-
-    if button == "auth-btn-signin":
-        username = user_username
-        password = user_password
-
-    elif button == "auth-btn-admin-login":
-        username = admin_username
-        password = admin_password
-
-    else:
+def handle_admin_login(n_clicks, username, password, session_data):
+    print("handle_admin_login fired")
+    if n_clicks is None or n_clicks == 0:
         raise dash.exceptions.PreventUpdate
 
-    print("Signin clicked", button, username)
-
     if not username or not password:
-        return dash.no_update, dbc.Alert(
-            "Please enter username and password",
-            color="warning"
-        ), dash.no_update
+        return (
+            dash.no_update,
+            dbc.Alert("Please enter username and password", color="warning"),
+            dash.no_update
+        )
+
     session_data = session_data or {}
 
-    from core.auth import register_user, authenticate_user
+    from core.auth import authenticate_user
+
     result = authenticate_user(username, password)
 
-    # print(" Auth result:", result)  # DEBUG
+    if not result["success"]:
+        return (
+            dash.no_update,
+            dbc.Alert(result["message"], color="danger"),
+            dash.no_update
+        )
 
-    if result['success']:
-        # Allow only normal users
-        if result['user_data']['role_id'] != 2:  # Assuming role_id 1=Admin, 2=User
-            return dash.no_update, dbc.Alert("Access denied: This is Admin account", color="danger"), dash.no_update
-        
-        result = authenticate_user(username, password)
+    # ADMIN CHECK
+    if result["user_data"]["role_id"] != 1:
+        return (
+            dash.no_update,
+            dbc.Alert("You are not an Administrator.", color="danger"),
+            dash.no_update
+        )
 
-        if result['success']:
-            session_data.update({
-                "is_authenticated": True,
-                "username": result['user_data']['username'],
-                "user_id": result['user_data']['id'],
-                "email": result['user_data']['email'],
-                "name": result['user_data']['name'],
-                "role_id": result['user_data']['role_id']   # ✅ ADD THIS
-            })
+    session_data.update({
+        "is_authenticated": True,
+        "username": result["user_data"]["username"],
+        "user_id": result["user_data"]["id"],
+        "email": result["user_data"]["email"],
+        "name": result["user_data"]["name"],
+        "role_id": result["user_data"]["role_id"]
+    })
 
-            return '/upload', dash.no_update, session_data
+    return "/companies", dash.no_update, session_data
 
-        # print("✅ LOGIN SUCCESS → redirecting")
 
-        return '/upload', dash.no_update, session_data
+# SIGN UP CALLBACK - Register user in PostgreSQL database
+@app.callback(
+    Output('auth-message-container', 'children', allow_duplicate=True),
+    Output('session-state', 'data', allow_duplicate=True),
+    Input('auth-btn-signup', 'n_clicks'),
+    State('auth-signup-name', 'value'),
+    State('auth-signup-email', 'value'),
+    State('auth-signup-username', 'value'),
+    State('auth-signup-password', 'value'),
+    State('auth-signup-password-confirm', 'value'),
+    State('auth-signup-role', 'value'),
+    State('session-state', 'data'),
+    prevent_initial_call=True
+)
+def handle_signup(n_clicks, name, email, username, password, password_confirm, role_id, session_data):
+    """Handle user sign up - REGISTER IN DATABASE"""
+    print("handle_signup fired")
+    if not n_clicks:
+        raise dash.exceptions.PreventUpdate
 
-    #  failure
-    return dash.no_update, dbc.Alert(result['message'], color="danger"), dash.no_update
+    session_data = session_data or {}
+
+    # Validation
+    if not all([name, email, username, password, password_confirm, role_id]):
+        return dbc.Alert("All fields are required", color="warning"), dash.no_update
+    
+    if not role_id:
+        return dbc.Alert("Please select a role", color="warning"), dash.no_update
+
+    if not SessionValidator.is_valid_email(email):
+        return dbc.Alert("Invalid email address", color="warning"), dash.no_update
+
+    is_valid_user, user_msg = SessionValidator.validate_username(username)
+    if not is_valid_user:
+        return dbc.Alert(user_msg, color="warning"), dash.no_update
+
+    is_valid_pwd, pwd_msg = SessionValidator.is_strong_password(password)
+    if not is_valid_pwd:
+        return dbc.Alert(pwd_msg, color="warning"), dash.no_update
+
+    if password != password_confirm:
+        return dbc.Alert("Passwords do not match", color="warning"), dash.no_update
+    
+   
+    # ✅ REGISTER USER IN DATABASE
+    reg_result = register_user(username, email, name, password, role_id)
+    
+    if not reg_result['success']:
+        return dbc.Alert(reg_result['message'], color="warning"), dash.no_update
+
+    # ✅ AUTO-LOGIN after signup
+    auth_result = authenticate_user(username, password)
+    
+    if auth_result['success']:
+        session_data.update({
+            "is_authenticated": True,
+            "username": auth_result['user_data']['username'],
+            "user_id": auth_result['user_data']['id'],
+            "email": auth_result['user_data']['email'],
+            "name": auth_result['user_data']['name'],
+            "role_id": auth_result['user_data']['role_id']   # ✅ ADD THIS
+        })
+
+        success = dbc.Alert(
+            [
+                html.H4("Account Created!", className="alert-heading"),
+                html.P(f"Welcome {name}! You are now logged in."),
+            ],
+            color="success",
+            style={'marginTop': '20px'}
+        )
+        print(f"[OK] New user registered and logged in: {username}")
+        return success, session_data
+
+    return dbc.Alert("Account created, but login failed.", color="warning"), dash.no_update
+
