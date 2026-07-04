@@ -1,537 +1,156 @@
-from dash import html, dcc
-import dash_bootstrap_components as dbc
+@app.callback(
+    Output('page-content', 'children'),
+    Input('url', 'pathname'),
+    [State('store-global-dataframe', 'data'),
+    State('store-global-profiles', 'data'),
+    State('store-objective', 'data'),
+    State('store-initial-config', 'data'),
+    State('store-ai-suggestions', 'data'),
+    State('session-state', 'data'),
+    State('store-kpi-selections', 'data'),
+    State('store-filter-selections', 'data')],
+    prevent_initial_call=False
+)
+def display_page(pathname, df_json, profiles_dict,  objective_data, config_dict, ai_suggestions, session_data, store_kpi_data, store_filter_data):
+    """Route to appropriate page based on URL and authentication"""
+    if not pathname or pathname == '':
+        pathname = '/'
 
+    pathname = str(pathname).strip()
+    
+    session_data = session_data or {}
+    is_authenticated = session_data.get("is_authenticated", False)
+    role_id = session_data.get("role_id")
 
-# ==========================
-# COLORS
-# ==========================
+    #  Block all pages except /auth if not authenticated
+    if pathname != '/auth' and not is_authenticated:
+        return page_auth.generate_auth_page()
 
-PRIMARY = "#4F46E5"
-SECONDARY = "#312E81"
-DARK = "#1E1B4B"
-WHITE = "#FFFFFF"
-TEXT = "#475569"
+    #  Redirect authenticated users away from /auth page
+    if pathname == '/auth' and is_authenticated:
+        if role_id == 1:
+            from pages import page_companies
+            return page_companies.generate_companies_page()
+        elif role_id == 2:
+            return page_upload.generate_upload_page()
+   
+    try:
+        # Show auth page
+        if pathname == '/auth' or pathname == '/login' or pathname == '/':
+            return page_auth.generate_auth_page()
 
+        # Check data for other routes
+        if not df_json or not profiles_dict:
+            return html.Div(
+                [
+                    html.H3("Error: Data not initialized"),
+                    html.P("Please refresh the page."),
+                ],
+                style={'padding': '20px', 'textAlign': 'center', 'color': 'red'}
+            )
 
-# ==========================
-# FEATURE CARD
-# ==========================
+        current_df = get_cached_dataframe()
+        if current_df is None:
+            return html.Div(
+                [html.H3("Error: Data not loaded"), html.P("Check server logs.")],
+                style={'padding': '20px', 'color': 'red'}
+            )
 
-def feature_card(icon, title, subtitle):
+        current_profiles = load_cached_profiles()
+        if not current_profiles:
+            return html.Div(
+                [html.H3("Error: Profiles not available"), html.P("Check server logs.")],
+                style={'padding': '20px', 'color': 'red'}
+            )
 
-    return dbc.Card(
+        confirmed_dtypes = session_data.get('confirmed_dtypes', {})
+        if not confirmed_dtypes:
+            confirmed_dtypes = {}
+            for col, profile_data in current_profiles.items():
+                confirmed_dtypes[col] = profile_data.get('dtype', 'categorical')
 
-        dbc.CardBody(
+        # Route to pages
+        if pathname == '/upload':
+            if role_id != 2:
+                return html.H3("Access Denied")
+            return page_upload.generate_upload_page()
 
-            [
+        elif pathname == '/config':
+            if role_id != 2:
+                return html.H3("Access Denied")
+            return page_config.generate_config_page(current_df, current_profiles, confirmed_dtypes)
 
-                html.Div(
+        elif pathname == '/dashboard':
+            if role_id != 2:
+                return html.H3("Access Denied")
+            # Give priority to loaded dashboard values
+            kpi_selections = session_data.get('kpi_selections', store_kpi_data or [])
+            filter_selections = session_data.get('filter_selections', store_filter_data or [])
 
-                    icon,
+            print("=" *80)
+            print("DASHBOARD PAGE")
+            print("AI_SUGGESTIONS TYPE:", type(ai_suggestions))
+            print("AI_SUGGESTIONS:", ai_suggestions)
+            print("=" * 80)
+            
 
-                    style={
-                        "fontSize": "28px",
-                        "marginBottom": "12px"
-                    }
-
-                ),
-
-                html.H5(
-
-                    title,
-
-                    style={
-                        "color": "white",
-                        "fontWeight": "600"
-                    }
-
-                ),
-
-                html.P(
-
-                    subtitle,
-
-                    style={
-                        "color": "#CBD5E1",
-                        "fontSize": "14px"
-                    }
-
+            # llm_analysis = None
+            # if config_dict:
+            #     llm_analysis = AnalysisFormatter.format_analysis(
+            #         type('DashboardConfig', (), config_dict)() if isinstance(config_dict, dict) else config_dict
+            #     )
+            
+            effective_config = ai_suggestions or config_dict
+            
+            llm_analysis = None
+            if effective_config:
+                llm_analysis = AnalysisFormatter.format_analysis(
+                    type('DashboardConfig', (), effective_config)() if isinstance(effective_config, dict) else effective_config
                 )
 
-            ]
-
-        ),
-
-        style={
-
-            "background": "rgba(255,255,255,.05)",
-
-            "border": "1px solid rgba(255,255,255,.12)",
-
-            "borderRadius": "16px",
-
-            "height": "170px"
-
-        }
-# ==========================
-# LEFT PANEL
-# ==========================
-
-def left_panel():
-
-    return html.Div(
-
-        [
-
-            # Logo
-            html.Img(
-
-                src="/assets/onex_software_logo.png",
-
-                style={
-                    "width": "220px",
-                    "marginBottom": "45px"
-                }
-
-            ),
-
-            html.H1(
-
-                "Administrator Portal",
-
-                style={
-                    "color": "white",
-                    "fontWeight": "700",
-                    "fontSize": "46px",
-                    "lineHeight": "58px",
-                    "marginBottom": "20px"
-                }
-
-            ),
-
-            html.P(
-
-                "Manage users, companies, permissions and platform configuration from one secure administration console.",
-
-                style={
-                    "color": "#CBD5E1",
-                    "fontSize": "18px",
-                    "lineHeight": "34px",
-                    "marginBottom": "45px",
-                    "maxWidth": "520px"
-                }
-
-            ),
-
-            dbc.Row(
-
-                [
-
-                    dbc.Col(
-
-                        feature_card(
-                            "👤",
-                            "Users",
-                            "Create and manage users"
-                        ),
-
-                        width=6
-
-                    ),
-
-                    dbc.Col(
-
-                        feature_card(
-                            "🏢",
-                            "Companies",
-                            "Manage company master"
-                        ),
-
-                        width=6
-
-                    )
-
-                ],
-
-                className="g-4"
-
-            ),
-
-            html.Br(),
-
-            dbc.Row(
-
-                [
-
-                    dbc.Col(
-
-                        feature_card(
-                            "🔗",
-                            "Mapping",
-                            "Assign companies to users"
-                        ),
-
-                        width=6
-
-                    ),
-
-                    dbc.Col(
-
-                        feature_card(
-                            "🛡️",
-                            "Security",
-                            "Role based access control"
-                        ),
-
-                        width=6
-
-                    )
-
-                ],
-
-                className="g-4"
-
-            ),
-
-            html.Div(
-
-                [
-
-                    html.Div(
-
-                        style={
-                            "width": "12px",
-                            "height": "12px",
-                            "background": "#22C55E",
-                            "borderRadius": "50%",
-                            "marginRight": "10px"
-                        }
-
-                    ),
-
-                    html.Span(
-
-                        "Secure Administrator Access",
-
-                        style={
-                            "color": "#22C55E",
-                            "fontWeight": "600",
-                            "fontSize": "16px"
-                        }
-
-                    )
-
-                ],
-
-                style={
-
-                    "display": "flex",
-
-                    "alignItems": "center",
-
-                    "marginTop": "45px"
-
-                }
-
+            result = page_dashboard.generate_dashboard_page(
+                current_df,
+                kpi_selections=kpi_selections,
+                filter_selections=filter_selections,
+                confirmed_dtypes=confirmed_dtypes,
+                llm_analysis=llm_analysis
             )
-
-        ],
-
-        style={
-
-            "height": "100vh",
-
-            "padding": "70px",
-
-            "background":
-                "linear-gradient(135deg,#4338CA,#1E1B4B)",
-
-            "display": "flex",
-
-            "flexDirection": "column",
-
-            "justifyContent": "center"
-
-        }
-
-# ==========================
-# RIGHT PANEL
-# ==========================
-
-def right_panel():
-
-    return html.Div(
-
-        [
-
-            html.Div(
-
-                [
-
-                    html.Img(
-
-                        src="/assets/onex_software_logo.png",
-
-                        style={
-                            "width": "210px",
-                            "marginBottom": "35px"
-                        }
-
-                    ),
-
-                    html.H2(
-
-                        "Administrator Login",
-
-                        style={
-                            "fontSize": "36px",
-                            "fontWeight": "700",
-                            "color": "#1F2937",
-                            "marginBottom": "10px"
-                        }
-
-                    ),
-
-                    html.P(
-
-                        "Sign in to manage users, companies and platform settings.",
-
-                        style={
-                            "color": "#6B7280",
-                            "fontSize": "16px",
-                            "marginBottom": "35px"
-                        }
-
-                    ),
-
-                    # -----------------------
-                    # Username
-                    # -----------------------
-
-                    dbc.Label(
-
-                        "Username",
-
-                        className="fw-semibold"
-
-                    ),
-
-                    dbc.Input(
-
-                        id="auth-admin-username",
-
-                        type="text",
-
-                        placeholder="Enter administrator username",
-
-                        className="login-input",
-
-                        style={
-                            "height": "52px",
-                            "borderRadius": "12px",
-                            "marginBottom": "20px"
-                        }
-
-                    ),
-
-                    # -----------------------
-                    # Password
-                    # -----------------------
-
-                    dbc.Label(
-
-                        "Password",
-
-                        className="fw-semibold"
-
-                    ),
-
-                    dbc.Input(
-
-                        id="auth-admin-password",
-
-                        type="password",
-
-                        placeholder="Enter password",
-
-                        className="login-input",
-
-                        style={
-                            "height": "52px",
-                            "borderRadius": "12px",
-                            "marginBottom": "20px"
-                        }
-
-                    ),
-
-                    # -----------------------
-                    # Message
-                    # -----------------------
-
-                    html.Div(
-
-                        id="auth-message-container",
-
-                        style={
-                            "marginBottom": "20px"
-                        }
-
-                    ),
-
-                    # -----------------------
-                    # Sign In Button
-                    # -----------------------
-
-                    dbc.Button(
-
-                        "Administrator Sign In",
-
-                        id="auth-btn-admin-login",
-
-                        color="primary",
-
-                        style={
-                            "width": "100%",
-                            "height": "54px",
-                            "fontWeight": "700",
-                            "fontSize": "16px",
-                            "borderRadius": "12px",
-                            "backgroundColor": "#4338CA",
-                            "border": "none"
-                        }
-
-                    ),
-
-                    html.Div(
-
-                        "────────── OR ──────────",
-
-                        style={
-                            "textAlign": "center",
-                            "marginTop": "28px",
-                            "marginBottom": "20px",
-                            "color": "#94A3B8",
-                            "fontWeight": "600"
-                        }
-
-                    ),
-
-                    dbc.Button(
-
-                        "← Back to User Login",
-
-                        href="/login",
-
-                        outline=True,
-
-                        color="secondary",
-
-                        style={
-                            "width": "100%",
-                            "height": "50px",
-                            "borderRadius": "12px",
-                            "fontWeight": "600"
-                        }
-
-                    )
-
-                ],
-
-                style={
-                    "width": "430px"
-                }
-
-            )
-
-        ],
-
-        style={
-
-            "height": "100vh",
-
-            "display": "flex",
-
-            "justifyContent": "center",
-
-            "alignItems": "center",
-
-            "backgroundColor": "#F8FAFC"
-
-        }
-
-    )
-    )
-    )
-
-
-
-# ==========================
-# ADMIN LOGIN PAGE
-# ==========================
-
-def generate_admin_login_page():
-
-    return dbc.Container(
-
-        [
-
-            dcc.Store(
-                id="admin-session-store"
-            ),
-
-            dbc.Row(
-
-                [
-
-                    dbc.Col(
-
-                        left_panel(),
-
-                        md=7,
-
-                        style={
-                            "padding": "0"
-                        }
-
-                    ),
-
-                    dbc.Col(
-
-                        right_panel(),
-
-                        md=5,
-
-                        style={
-                            "padding": "0"
-                        }
-
-                    )
-
-                ],
-
-                className="g-0",
-
-                style={
-                    "height": "100vh"
-                }
-
-            )
-
-        ],
-
-        fluid=True,
-
-        style={
-
-            "padding": "0",
-
-            "margin": "0",
-
-            "overflow": "hidden",
-
-            "backgroundColor": "#F8FAFC"
-
-        }
-
-    )
-
+            return result
+        
+        elif pathname == '/data-review':
+            if role_id != 2:
+                return html.H3("Access Denied")
+            return page_data_review.generate_data_review_page(current_df, current_profiles)
+        
+        elif pathname == "/admin":
+            return admin_dashboard_layout()
+        
+        elif pathname == '/users':
+            if role_id != 1:
+                return html.H3("Access Denied")
+            from pages import page_users
+            return page_users.generate_users_page()
+
+        elif pathname == '/companies':
+            if role_id != 1:
+                return html.H3("Access Denied")
+            from pages import page_companies
+            return page_companies.generate_companies_page()
+        
+        elif pathname == '/mapping':
+            if role_id != 1:
+                return html.H3("Access Denied")
+
+            from pages import page_user_company
+            return page_user_company.generate_mapping_page()
+
+        else:
+            return page_auth.generate_auth_page()
+
+    except Exception as e:
+        import traceback
+        print(f"[ERROR] display_page: {type(e).__name__}: {e}\n{traceback.format_exc()}")
+        return html.Div(
+            [html.H3("Error loading page"), html.P("Check server logs.")],
+            style={'padding': '20px', 'backgroundColor': '#ffeeee', 'color': '#cc0000'}
+        )
