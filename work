@@ -1,1 +1,64 @@
+from core.app_db import UserCompany, Company
+
+
+def get_user_companies(user_id):
+    """Get all companies assigned to a user"""
+
+    session = get_session()
+
+    try:
+
+        companies = (
+            session.query(Company)
+            .join(
+                UserCompany,
+                Company.company_id == UserCompany.company_id
+            )
+            .filter(UserCompany.user_id == user_id)
+            .filter(Company.is_active == True)
+            .all()
+        )
+
+        return [
+            {
+                "company_id": c.company_id,
+                "company_name": c.company_name,
+                "company_code": c.company_code
+            }
+            for c in companies
+        ]
+
+    finally:
+        session.close()
+
+::/:
+from core.auth import get_user_companies
+
+companies = get_user_companies(
+    result["user_data"]["id"]
+) if result["success"] else []
+
+//:://
+session_data.update({
+
+    "is_authenticated": True,
+    "username": result["user_data"]["username"],
+    "user_id": result["user_data"]["id"],
+    "email": result["user_data"]["email"],
+    "name": result["user_data"]["name"],
+    "role_id": result["user_data"]["role_id"],
+
+    "companies": companies
+
+})
+
+/////////;::;:;
+from core.auth import get_user_companies
+
+companies = get_user_companies(
+    result["user_data"]["id"]
+) if result["success"] else []
+
+
+:::;:://///
 
