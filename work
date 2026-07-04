@@ -1,72 +1,518 @@
-@app.callback(
-    Output('url', 'pathname', allow_duplicate=True),
-    Output('auth-message-container', 'children'),
-    Output('session-state', 'data', allow_duplicate=True),
-    Input('auth-btn-signin', 'n_clicks'),
-    # Input('auth-btn-admin-login', 'n_clicks'),
-    State('auth-signin-username', 'value'),
-    State('auth-signin-password', 'value'),
-    # State('auth-admin-username', 'value'),
-    # State('auth-admin-password', 'value'),
-    State('session-state', 'data'),
-    prevent_initial_call=True
-)
 
-def handle_signin(user_click, user_username, user_password, session_data):
-    print("handle_signin fired")
+from dash import html, dcc
+import dash_bootstrap_components as dbc
+
+
+# ==========================================================
+# COLORS
+# ==========================================================
+
+PRIMARY = "#4F46E5"
+PRIMARY_DARK = "#312E81"
+LEFT_BG = "#2D2676"
+TEXT_LIGHT = "#D1D5DB"
+WHITE = "#FFFFFF"
+
+
+# ==========================================================
+# FEATURE CARD
+# ==========================================================
+
+def feature_card(icon, title, subtitle):
+
+    return dbc.Card(
+
+        dbc.CardBody([
+
+            html.Div(
+                icon,
+                style={
+                    "fontSize": "28px",
+                    "marginBottom": "10px"
+                }
+            ),
+
+            html.H4(
+                title,
+                style={
+                    "color": "white",
+                    "fontWeight": "700",
+                    "marginBottom": "4px"
+                }
+            ),
+
+            html.Div(
+                subtitle,
+                style={
+                    "color": "#C7D2FE",
+                    "fontSize": "14px"
+                }
+            )
+
+        ]),
+
+        style={
+            "background": "rgba(255,255,255,0.06)",
+            "border": "1px solid rgba(255,255,255,0.08)",
+            "borderRadius": "16px",
+            "height": "150px"
+        }
+    )
+
+
+# ==========================================================
+# LEFT PANEL
+# ==========================================================
+
+def left_panel():
+
+    return html.Div(
+
+        [
+
+            html.Br(),
+
+            html.Img(
+                src="/assets/onex_software_logo.png",
+                style={
+                    "width": "220px",
+                    "marginBottom": "40px"
+                }
+            ),
+
+            html.H1(
+
+                "AI Powered Data Insight Platform",
+
+                style={
+                    "color": "white",
+                    "fontSize": "54px",
+                    "fontWeight": "700",
+                    "lineHeight": "1.15",
+                    "marginBottom": "25px"
+                }
+
+            ),
+
+            html.P(
+
+                "Leverage enterprise-grade AI to analyze datasets, build dashboards, generate KPIs and visualize business insights instantly.",
+
+                style={
+                    "color": TEXT_LIGHT,
+                    "fontSize": "21px",
+                    "lineHeight": "1.8",
+                    "marginBottom": "45px"
+                }
+
+            ),
+
+            dbc.Row(
+
+                [
+
+                    dbc.Col(
+
+                        feature_card(
+                            "🤖",
+                            "AI",
+                            "Smart Analytics"
+                        ),
+
+                        width=6
+                    ),
+
+                    dbc.Col(
+
+                        feature_card(
+                            "📊",
+                            "Dashboard",
+                            "Interactive Reports"
+                        ),
+
+                        width=6
+                    )
+
+                ],
+
+                className="mb-4"
+
+            ),
+
+            dbc.Row(
+
+                [
+
+                    dbc.Col(
+
+                        feature_card(
+                            "🔒",
+                            "Secure",
+                            "Role Based Access"
+                        ),
+
+                        width=6
+                    ),
+
+                    dbc.Col(
+
+                        feature_card(
+                            "⚡",
+                            "Fast",
+                            "Instant Insights"
+                        ),
+
+                        width=6
+                    )
+
+                ]
+
+            ),
+
+            html.Br(),
+
+            dbc.Badge(
+
+                "●  System Online • All Services Running",
+
+                color="success",
+
+                pill=True,
+
+                style={
+                    "padding": "12px 18px",
+                    "fontSize": "15px"
+                }
+
+            )
+
+        ],
+
+        style={
+
+            "background": f"linear-gradient(180deg,{PRIMARY_DARK}, {LEFT_BG})",
+            "height": "100vh",
+            "padding": "60px",
+            "display": "flex",
+            "flexDirection": "column",
+            "justifyContent": "center"
+
+        }
+
+    )
     
-    if user_click is None or user_click == 0:
-        raise dash.exceptions.PreventUpdate
-    
-    button = ctx.triggered_id
+# ==========================================================
+# RIGHT PANEL
+# ==========================================================
 
-    if button == "auth-btn-signin":
-        username = user_username
-        password = user_password
+def right_panel():
 
-    # elif button == "auth-btn-admin-login":
-    #     username = admin_username
-    #     password = admin_password
+    return html.Div(
 
-    else:
-        raise dash.exceptions.PreventUpdate
+        [
 
-    print("Signin clicked", button, username)
+            html.Div(
 
-    if not username or not password:
-        return dash.no_update, dbc.Alert(
-            "Please enter username and password",
-            color="warning"
-        ), dash.no_update
-    session_data = session_data or {}
+                [
 
-    from core.auth import register_user, authenticate_user
-    result = authenticate_user(username, password)
-    
-    from core.auth import get_user_companies
-    companies = get_user_companies(
-        result["user_data"]["id"]
-    ) if result["success"] else []
+                    html.Img(
 
+                        src="/assets/onex_software_logo.png",
 
-    if result['success']:
-        # Allow only normal users
-        if result['user_data']['role_id'] != 2:  # Assuming role_id 1=Admin, 2=User
-            return dash.no_update, dbc.Alert("Access denied: This is Admin account", color="danger"), dash.no_update
-        
-        # result = authenticate_user(username, password)
-        session_data.update({
-                "is_authenticated": True,
-                "username": result['user_data']['username'],
-                "user_id": result['user_data']['id'],
-                "email": result['user_data']['email'],
-                "name": result['user_data']['name'],
-                "role_id": result['user_data']['role_id'],
-                "companies": companies
-            })
+                        style={
+                            "width": "230px",
+                            "marginBottom": "35px"
+                        }
 
-        return '/upload', dash.no_update, session_data
-        # print("✅ LOGIN SUCCESS → redirecting")
-    
-    return dash.no_update, dbc.Alert(result['message'], color="danger"), dash.no_update
+                    ),
 
+                    html.H2(
+
+                        "Welcome Back",
+
+                        style={
+                            "fontWeight": "700",
+                            "fontSize": "38px",
+                            "marginBottom": "8px",
+                            "color": "#1F2937"
+                        }
+
+                    ),
+
+                    html.P(
+
+                        "Sign in to continue to ONEX AI Platform",
+
+                        style={
+                            "color": "#6B7280",
+                            "marginBottom": "35px",
+                            "fontSize": "16px"
+                        }
+
+                    ),
+
+                    # --------------------------------------------------
+                    # Username
+                    # --------------------------------------------------
+
+                    dbc.Label(
+
+                        "Username",
+
+                        style={
+                            "fontWeight": "600",
+                            "marginBottom": "8px"
+                        }
+
+                    ),
+
+                    dbc.Input(
+
+                        id="auth-signin-username",
+
+                        type="text",
+
+                        placeholder="Enter username",
+
+                        className="login-input",
+
+                        style={
+                            "height": "52px",
+                            "borderRadius": "12px",
+                            "marginBottom": "20px"
+                        }
+
+                    ),
+
+                    # --------------------------------------------------
+                    # Password
+                    # --------------------------------------------------
+
+                    dbc.Label(
+
+                        "Password",
+
+                        style={
+                            "fontWeight": "600",
+                            "marginBottom": "8px"
+                        }
+
+                    ),
+
+                    dbc.Input(
+
+                        id="auth-signin-password",
+
+                        type="password",
+
+                        placeholder="Enter password",
+
+                        className="login-input",
+
+                        style={
+                            "height": "52px",
+                            "borderRadius": "12px",
+                            "marginBottom": "20px"
+                        }
+
+                    ),
+
+                    # --------------------------------------------------
+                    # Company
+                    # --------------------------------------------------
+
+                    dbc.Label(
+
+                        "Company",
+
+                        style={
+                            "fontWeight": "600",
+                            "marginBottom": "8px"
+                        }
+
+                    ),
+
+                    dcc.Dropdown(
+
+                        id="auth-company-dropdown",
+
+                        placeholder="Select Company",
+
+                        options=[],
+
+                        clearable=False,
+
+                        style={
+                            "marginBottom": "28px"
+                        }
+
+                    ),
+
+                    # --------------------------------------------------
+                    # MESSAGE
+                    # --------------------------------------------------
+
+                    html.Div(
+
+                        id="auth-message-container",
+
+                        style={
+                            "marginBottom": "18px"
+                        }
+
+                    ),
+
+                    # --------------------------------------------------
+                    # SIGN IN
+                    # --------------------------------------------------
+
+                    dbc.Button(
+
+                        "Sign In",
+
+                        id="auth-btn-signin",
+
+                        color="primary",
+
+                        style={
+                            "width": "100%",
+                            "height": "52px",
+                            "borderRadius": "12px",
+                            "fontWeight": "700",
+                            "fontSize": "16px",
+                            "backgroundColor": "#4F46E5",
+                            "border": "none"
+                        }
+
+                    ),
+
+                    html.Div(
+
+                        "──────────  OR  ──────────",
+
+                        style={
+                            "textAlign": "center",
+                            "color": "#9CA3AF",
+                            "marginTop": "28px",
+                            "marginBottom": "22px",
+                            "fontWeight": "600"
+                        }
+
+                    ),
+
+                    dbc.Button(
+
+                        "Administrator Login",
+
+                        id="btn-open-admin-login",
+
+                        outline=True,
+
+                        color="secondary",
+
+                        href="/admin-login",
+
+                        style={
+                            "width": "100%",
+                            "height": "50px",
+                            "borderRadius": "12px",
+                            "fontWeight": "600"
+                        }
+
+                    )
+
+                ],
+
+                style={
+                    "width": "460px"
+                }
+
+            )
+
+        ],
+
+        style={
+
+            "height": "100vh",
+
+            "display": "flex",
+
+            "justifyContent": "center",
+
+            "alignItems": "center",
+
+            "backgroundColor": "#F8FAFC"
+
+        }
+
+    )
+
+# ==========================================================
+# USER LOGIN PAGE
+# ==========================================================
+
+def generate_user_login_page():
+
+    return dbc.Container(
+
+        [
+
+            dcc.Store(
+                id="selected-company"
+            ),
+
+            dbc.Row(
+
+                [
+
+                    dbc.Col(
+
+                        left_panel(),
+
+                        md=7,
+
+                        style={
+                            "padding": "0"
+                        }
+
+                    ),
+
+                    dbc.Col(
+
+                        right_panel(),
+
+                        md=5,
+
+                        style={
+                            "padding": "0"
+                        }
+
+                    )
+
+                ],
+
+                className="g-0",
+
+                style={
+                    "height": "100vh"
+                }
+
+            )
+
+        ],
+
+        fluid=True,
+
+        style={
+
+            "padding": "0",
+
+            "margin": "0",
+
+            "overflow": "hidden",
+
+            "backgroundColor": "#F8FAFC"
+
+        }
+
+    )
