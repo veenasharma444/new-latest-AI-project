@@ -1,36 +1,55 @@
 from dash import html, dcc
 import dash_bootstrap_components as dbc
 
-def generate_mapping_page():
+
+def generate_companies_page():
 
     return html.Div([
 
-        html.H2("User Company Mapping", style={'marginBottom': '20px'}),
+        html.H2("Company Master", style={'marginBottom': '20px'}),
 
+        # ✅ FORM
         dbc.Card([
             dbc.CardBody([
 
-                html.Label("Select User"),
-                dcc.Dropdown(id='mapping-user-dropdown'),
+                html.H5("Create Company"),
 
-                html.Br(),
+                dbc.Row([
+                    dbc.Col([
+                        html.Label("Company Name"),
+                        dcc.Input(id='company-name', className='form-control')
+                    ], width=4),
 
-                html.Label("Select Companies"),
-                dcc.Dropdown(id='mapping-company-dropdown', multi=True),
+                    dbc.Col([
+                        html.Label("Company Code"),
+                        dcc.Input(id='company-code', className='form-control')
+                    ], width=4),
 
-                html.Br(),
+                    dbc.Col([
+                        html.Label("Status"),
+                        dcc.Dropdown(
+                            id='company-status',
+                            options=[
+                                {"label": "Active", "value": True},
+                                {"label": "Inactive", "value": False},
+                            ],
+                            value=True
+                        )
+                    ], width=4),
+                ], className="mb-3"),
 
-                dbc.Button("Assign Companies", id='btn-assign-company', color='primary'),
+                dbc.Button("Create Company", id='btn-create-company', color='primary'),
 
-                html.Div(id='mapping-msg', style={'marginTop': '10px'})
+                html.Div(id='company-msg', style={'marginTop': '10px'})
 
             ])
         ], className="mb-4"),
 
+        # ✅ TABLE
         dbc.Card([
             dbc.CardBody([
-                html.H5("Mappings"),
-                html.Div(id='mapping-table')
+                html.H5("Company List"),
+                html.Div(id='company-table')
             ])
         ])
 
