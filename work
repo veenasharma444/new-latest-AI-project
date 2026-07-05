@@ -1,496 +1,58 @@
-
-from dash import html, dcc
-import dash_bootstrap_components as dbc
-
-
-# ==========================
-# COLORS
-# ==========================
-
-PRIMARY = "#4F46E5"
-SECONDARY = "#312E81"
-DARK = "#1E1B4B"
-WHITE = "#FFFFFF"
-TEXT = "#475569"
-
-
-# ==========================
-# FEATURE CARD
-# ==========================
-
-def feature_card(icon, title, subtitle):
-
-    return dbc.Card(
-
-        dbc.CardBody(
-
-            [
-
-                html.Div(
-
-                    icon,
-
-                    style={
-                        "fontSize": "28px",
-                        "marginBottom": "12px"
-                    }
-
-                ),
-
-                html.H5(
-
-                    title,
-
-                    style={
-                        "color": "white",
-                        "fontWeight": "600"
-                    }
-
-                ),
-
-                html.P(
-
-                    subtitle,
-
-                    style={
-                        "color": "#CBD5E1",
-                        "fontSize": "14px"
-                    }
-
-                )
-
-            ]
-
-        ),
-
-        style={
-
-            "background": "rgba(255,255,255,.05)",
-
-            "border": "1px solid rgba(255,255,255,.12)",
-
-            "borderRadius": "16px",
-
-            "height": "170px"
-
-        }
-
-    )
-
-
-# ==========================
-# LEFT PANEL
-# ==========================
-
-def left_panel():
-
-    return html.Div(
-
-        [
-
-            # Logo
-            html.Img(
-
-                src="/assets/onex_software_logo.png",
-
-                style={
-                    "width": "220px",
-                    "marginBottom": "45px"
-                }
-
-            ),
-
-            html.H1(
-
-                "Administrator Portal",
-
-                style={
-                    "color": "white",
-                    "fontWeight": "700",
-                    "fontSize": "46px",
-                    "lineHeight": "58px",
-                    "marginBottom": "20px"
-                }
-
-            ),
-
-            html.P(
-
-                "Manage users, companies, permissions and platform configuration from one secure administration console.",
-
-                style={
-                    "color": "#CBD5E1",
-                    "fontSize": "18px",
-                    "lineHeight": "34px",
-                    "marginBottom": "45px",
-                    "maxWidth": "520px"
-                }
-
-            ),
-
-            dbc.Row(
-
-                [
-
-                    dbc.Col(
-
-                        feature_card(
-                            "👤",
-                            "Users",
-                            "Create and manage users"
-                        ),
-
-                        width=6
-
-                    ),
-
-                    dbc.Col(
-
-                        feature_card(
-                            "🏢",
-                            "Companies",
-                            "Manage company master"
-                        ),
-
-                        width=6
-
-                    )
-
-                ],
-
-                className="g-4"
-
-            ),
-
-            html.Br(),
-
-            dbc.Row(
-
-                [
-
-                    dbc.Col(
-
-                        feature_card(
-                            "🔗",
-                            "Mapping",
-                            "Assign companies to users"
-                        ),
-
-                        width=6
-
-                    ),
-
-                    dbc.Col(
-
-                        feature_card(
-                            "🛡️",
-                            "Security",
-                            "Role based access control"
-                        ),
-
-                        width=6
-
-                    )
-
-                ],
-
-                className="g-4"
-
-            ),
-
-            html.Div(
-
-                [
-
-                    html.Div(
-
-                        style={
-                            "width": "12px",
-                            "height": "12px",
-                            "background": "#22C55E",
-                            "borderRadius": "50%",
-                            "marginRight": "10px"
-                        }
-
-                    ),
-
-                    html.Span(
-
-                        "Secure Administrator Access",
-
-                        style={
-                            "color": "#22C55E",
-                            "fontWeight": "600",
-                            "fontSize": "16px"
-                        }
-
-                    )
-
-                ],
-
-                style={
-
-                    "display": "flex",
-
-                    "alignItems": "center",
-
-                    "marginTop": "45px"
-
-                }
-
-            )
-
-        ],
-
-        style={
-
-            "height": "100vh",
-
-            "padding": "70px",
-
-            "background":
-                "linear-gradient(135deg,#4338CA,#1E1B4B)",
-
-            "display": "flex",
-
-            "flexDirection": "column",
-
-            "justifyContent": "center"
-
-        }
-    )
+@app.callback(
+    Output('url', 'pathname', allow_duplicate=True),
+    Output('auth-message-container', 'children', allow_duplicate=True),
+    Output('session-state', 'data', allow_duplicate=True),
+    Input('auth-btn-admin-login', 'n_clicks'),
+    State('auth-admin-username', 'value'),
+    State('auth-admin-password', 'value'),
+    State('session-state', 'data'),
+    prevent_initial_call=True
+)
+def handle_admin_login(n_clicks, username, password, session_data):
+    print("handle_admin_login fired")
+    if n_clicks is None or n_clicks == 0:
+        raise dash.exceptions.PreventUpdate
+
+    if not username or not password:
+        return (
+            dash.no_update,
+            dbc.Alert("Please enter username and password", color="warning"),
+            dash.no_update
+        )
+
+    session_data = session_data or {}
+
+    from core.auth import authenticate_user
+    result = authenticate_user(username, password)
     
-
-# ==========================
-# RIGHT PANEL
-# ==========================
-
-def right_panel():
-
-    return html.Div(
-
-        [
-
-            html.Div(
-
-                [
-
-                    html.Img(
-
-                        src="/assets/onex_software_logo.png",
-
-                        style={
-                            "width": "210px",
-                            "marginBottom": "35px"
-                        }
-
-                    ),
-
-                    html.H2(
-
-                        "Administrator Login",
-
-                        style={
-                            "fontSize": "36px",
-                            "fontWeight": "700",
-                            "color": "#1F2937",
-                            "marginBottom": "10px"
-                        }
-
-                    ),
-
-                    html.P(
-
-                        "Sign in to manage users, companies and platform settings.",
-
-                        style={
-                            "color": "#6B7280",
-                            "fontSize": "16px",
-                            "marginBottom": "35px"
-                        }
-
-                    ),
-
-                    # -----------------------
-                    # Username
-                    # -----------------------
-
-                    dbc.Label(
-
-                        "Username",
-
-                        className="fw-semibold"
-
-                    ),
-
-                    dbc.Input(
-
-                        id="auth-admin-username",
-
-                        type="text",
-
-                        placeholder="Enter administrator username",
-
-                        className="login-input",
-
-                        style={
-                            "height": "52px",
-                            "borderRadius": "12px",
-                            "marginBottom": "20px"
-                        }
-
-                    ),
-
-                    # -----------------------
-                    # Password
-                    # -----------------------
-
-                    dbc.Label(
-
-                        "Password",
-
-                        className="fw-semibold"
-
-                    ),
-
-                    dbc.Input(
-
-                        id="auth-admin-password",
-
-                        type="password",
-
-                        placeholder="Enter password",
-
-                        className="login-input",
-
-                        style={
-                            "height": "52px",
-                            "borderRadius": "12px",
-                            "marginBottom": "20px"
-                        }
-
-                    ),
-
-                    # -----------------------
-                    # Message
-                    # -----------------------
-
-                    html.Div(
-                        id="auth-message-container",
-                        style={
-                            "marginBottom": "20px"
-                        }
-                    ),
-
-                    # -----------------------
-                    # Sign In Button
-                    # -----------------------
-
-                    dbc.Button(
-                        "Administrator Sign In",
-                        id="auth-btn-admin-login",
-                        color="primary",
-                        style={
-                            "width": "100%",
-                            "height": "54px",
-                            "fontWeight": "700",
-                            "fontSize": "16px",
-                            "borderRadius": "12px",
-                            "backgroundColor": "#4338CA",
-                            "border": "none"
-                        }
-
-                    ),
-
-                    html.Div(
-
-                        "────────── OR ──────────",
-
-                        style={
-                            "textAlign": "center",
-                            "marginTop": "28px",
-                            "marginBottom": "20px",
-                            "color": "#94A3B8",
-                            "fontWeight": "600"
-                        }
-
-                    ),
-
-                    dbc.Button(
-                        "← Back to User Login",
-                        href="/login",
-                        outline=True,
-                        color="secondary",
-                        style={
-                            "width": "100%",
-                            "height": "50px",
-                            "borderRadius": "12px",
-                            "fontWeight": "600"
-                        }
-                    )
-                ],
-
-                style={
-                    "width": "430px"
-                }
-
-            )
-
-        ],
-
-        style={
-
-            "height": "100vh",
-            "display": "flex",
-            "justifyContent": "center",
-            "alignItems": "center",
-            "backgroundColor": "#F8FAFC"
-
-        }
-
-    )
-
-# ==========================
-# ADMIN LOGIN PAGE
-# ==========================
-
-def generate_admin_login_page():
-
-    return dbc.Container(
-
-        [
-            dcc.Store(
-                id="admin-session-store"
-            ),
-            dbc.Row(
-                [
-                    dbc.Col(
-                        left_panel(),
-                        md=7,
-                        style={
-                            "padding": "0"
-                        }
-                    ),
-                    dbc.Col(
-                        right_panel(),
-                        md=5,
-                        style={
-                            "padding": "0"
-                        }
-                    )
-                ],
-                className="g-0",
-                style={
-                    "height": "100vh"
-                }
-            )
-        ],
-        fluid=True,
-
-        style={
-            "padding": "0",
-            "margin": "0",
-            "overflow": "hidden",
-            "backgroundColor": "#F8FAFC"
-        }
-    )
+    from core.auth import get_user_companies
+    companies = get_user_companies(
+        result["user_data"]["id"]
+    ) if result["success"] else []
+
+    if not result["success"]:
+        return (
+            dash.no_update,
+            dbc.Alert(result["message"], color="danger"),
+            dash.no_update
+        )
+
+    # ADMIN CHECK
+    if result["user_data"]["role_id"] != 1:
+        return (
+            dash.no_update,
+            dbc.Alert("You are not an Administrator.", color="danger"),
+            dash.no_update
+        )
+
+    session_data.update({
+        "is_authenticated": True,
+        "username": result["user_data"]["username"],
+        "user_id": result["user_data"]["id"],
+        "email": result["user_data"]["email"],
+        "name": result["user_data"]["name"],
+        "role_id": result["user_data"]["role_id"],
+        "companies": companies
+    })
+
+    return "/admin", dash.no_update, session_data
