@@ -1,85 +1,68 @@
+
 from dash import html, dcc
 import dash_bootstrap_components as dbc
 
 
-# ==========================
+# ==========================================================
 # COLORS
-# ==========================
+# ==========================================================
 
 PRIMARY = "#4F46E5"
-SECONDARY = "#312E81"
-DARK = "#1E1B4B"
+PRIMARY_DARK = "#312E81"
+LEFT_BG = "#2D2676"
+TEXT_LIGHT = "#D1D5DB"
 WHITE = "#FFFFFF"
-TEXT = "#475569"
 
 
-# ==========================
+# ==========================================================
 # FEATURE CARD
-# ==========================
+# ==========================================================
 
 def feature_card(icon, title, subtitle):
 
     return dbc.Card(
 
-        dbc.CardBody(
+        dbc.CardBody([
 
-            [
+            html.Div(
+                icon,
+                style={
+                    "fontSize": "28px",
+                    "marginBottom": "10px"
+                }
+            ),
 
-                html.Div(
+            html.H4(
+                title,
+                style={
+                    "color": "white",
+                    "fontWeight": "700",
+                    "marginBottom": "4px"
+                }
+            ),
 
-                    icon,
+            html.Div(
+                subtitle,
+                style={
+                    "color": "#C7D2FE",
+                    "fontSize": "14px"
+                }
+            )
 
-                    style={
-                        "fontSize": "28px",
-                        "marginBottom": "12px"
-                    }
-
-                ),
-
-                html.H5(
-
-                    title,
-
-                    style={
-                        "color": "white",
-                        "fontWeight": "600"
-                    }
-
-                ),
-
-                html.P(
-
-                    subtitle,
-
-                    style={
-                        "color": "#CBD5E1",
-                        "fontSize": "14px"
-                    }
-
-                )
-
-            ]
-
-        ),
+        ]),
 
         style={
-
-            "background": "rgba(255,255,255,.05)",
-
-            "border": "1px solid rgba(255,255,255,.12)",
-
+            "background": "rgba(255,255,255,0.06)",
+            "border": "1px solid rgba(255,255,255,0.08)",
             "borderRadius": "16px",
-
-            "height": "170px"
-
+            "height": "150px"
         }
-
     )
 
 
-# ==========================
+# ==========================================================
 # LEFT PANEL
-# ==========================
+# ==========================================================
 
 def left_panel():
 
@@ -87,42 +70,39 @@ def left_panel():
 
         [
 
-            # Logo
+            html.Br(),
+
             html.Img(
-
                 src="/assets/onex_software_logo.png",
-
                 style={
                     "width": "220px",
-                    "marginBottom": "45px"
+                    "marginBottom": "40px"
                 }
-
             ),
 
             html.H1(
 
-                "Administrator Portal",
+                "AI Powered Data Insight Platform",
 
                 style={
                     "color": "white",
+                    "fontSize": "54px",
                     "fontWeight": "700",
-                    "fontSize": "46px",
-                    "lineHeight": "58px",
-                    "marginBottom": "20px"
+                    "lineHeight": "1.15",
+                    "marginBottom": "25px"
                 }
 
             ),
 
             html.P(
 
-                "Manage users, companies, permissions and platform configuration from one secure administration console.",
+                "Leverage enterprise-grade AI to analyze datasets, build dashboards, generate KPIs and visualize business insights instantly.",
 
                 style={
-                    "color": "#CBD5E1",
-                    "fontSize": "18px",
-                    "lineHeight": "34px",
-                    "marginBottom": "45px",
-                    "maxWidth": "520px"
+                    "color": TEXT_LIGHT,
+                    "fontSize": "21px",
+                    "lineHeight": "1.8",
+                    "marginBottom": "45px"
                 }
 
             ),
@@ -134,34 +114,30 @@ def left_panel():
                     dbc.Col(
 
                         feature_card(
-                            "👤",
-                            "Users",
-                            "Create and manage users"
+                            "🤖",
+                            "AI",
+                            "Smart Analytics"
                         ),
 
                         width=6
-
                     ),
 
                     dbc.Col(
 
                         feature_card(
-                            "🏢",
-                            "Companies",
-                            "Manage company master"
+                            "📊",
+                            "Dashboard",
+                            "Interactive Reports"
                         ),
 
                         width=6
-
                     )
 
                 ],
 
-                className="g-4"
+                className="mb-4"
 
             ),
-
-            html.Br(),
 
             dbc.Row(
 
@@ -170,71 +146,42 @@ def left_panel():
                     dbc.Col(
 
                         feature_card(
-                            "🔗",
-                            "Mapping",
-                            "Assign companies to users"
+                            "🔒",
+                            "Secure",
+                            "Role Based Access"
                         ),
 
                         width=6
-
                     ),
 
                     dbc.Col(
 
                         feature_card(
-                            "🛡️",
-                            "Security",
-                            "Role based access control"
+                            "⚡",
+                            "Fast",
+                            "Instant Insights"
                         ),
 
                         width=6
-
                     )
 
-                ],
-
-                className="g-4"
+                ]
 
             ),
 
-            html.Div(
+            html.Br(),
 
-                [
+            dbc.Badge(
 
-                    html.Div(
+                "●  System Online • All Services Running",
 
-                        style={
-                            "width": "12px",
-                            "height": "12px",
-                            "background": "#22C55E",
-                            "borderRadius": "50%",
-                            "marginRight": "10px"
-                        }
+                color="success",
 
-                    ),
-
-                    html.Span(
-
-                        "Secure Administrator Access",
-
-                        style={
-                            "color": "#22C55E",
-                            "fontWeight": "600",
-                            "fontSize": "16px"
-                        }
-
-                    )
-
-                ],
+                pill=True,
 
                 style={
-
-                    "display": "flex",
-
-                    "alignItems": "center",
-
-                    "marginTop": "45px"
-
+                    "padding": "12px 18px",
+                    "fontSize": "15px"
                 }
 
             )
@@ -243,26 +190,20 @@ def left_panel():
 
         style={
 
+            "background": f"linear-gradient(180deg,{PRIMARY_DARK}, {LEFT_BG})",
             "height": "100vh",
-
-            "padding": "70px",
-
-            "background":
-                "linear-gradient(135deg,#4338CA,#1E1B4B)",
-
+            "padding": "60px",
             "display": "flex",
-
             "flexDirection": "column",
-
             "justifyContent": "center"
 
         }
+
     )
     
-
-# ==========================
+# ==========================================================
 # RIGHT PANEL
-# ==========================
+# ==========================================================
 
 def right_panel():
 
@@ -279,7 +220,7 @@ def right_panel():
                         src="/assets/onex_software_logo.png",
 
                         style={
-                            "width": "210px",
+                            "width": "230px",
                             "marginBottom": "35px"
                         }
 
@@ -287,48 +228,51 @@ def right_panel():
 
                     html.H2(
 
-                        "Administrator Login",
+                        "Welcome Back",
 
                         style={
-                            "fontSize": "36px",
                             "fontWeight": "700",
-                            "color": "#1F2937",
-                            "marginBottom": "10px"
+                            "fontSize": "38px",
+                            "marginBottom": "8px",
+                            "color": "#1F2937"
                         }
 
                     ),
 
                     html.P(
 
-                        "Sign in to manage users, companies and platform settings.",
+                        "Sign in to continue to ONEX AI Platform",
 
                         style={
                             "color": "#6B7280",
-                            "fontSize": "16px",
-                            "marginBottom": "35px"
+                            "marginBottom": "35px",
+                            "fontSize": "16px"
                         }
 
                     ),
 
-                    # -----------------------
+                    # --------------------------------------------------
                     # Username
-                    # -----------------------
+                    # --------------------------------------------------
 
                     dbc.Label(
 
                         "Username",
 
-                        className="fw-semibold"
+                        style={
+                            "fontWeight": "600",
+                            "marginBottom": "8px"
+                        }
 
                     ),
 
                     dbc.Input(
 
-                        id="auth-admin-username",
+                        id="auth-signin-username",
 
                         type="text",
 
-                        placeholder="Enter administrator username",
+                        placeholder="Enter username",
 
                         className="login-input",
 
@@ -340,21 +284,24 @@ def right_panel():
 
                     ),
 
-                    # -----------------------
+                    # --------------------------------------------------
                     # Password
-                    # -----------------------
+                    # --------------------------------------------------
 
                     dbc.Label(
 
                         "Password",
 
-                        className="fw-semibold"
+                        style={
+                            "fontWeight": "600",
+                            "marginBottom": "8px"
+                        }
 
                     ),
 
                     dbc.Input(
 
-                        id="auth-admin-password",
+                        id="auth-signin-password",
 
                         type="password",
 
@@ -370,39 +317,70 @@ def right_panel():
 
                     ),
 
-                    # -----------------------
-                    # Message
-                    # -----------------------
+                    # --------------------------------------------------
+                    # Company
+                    # --------------------------------------------------
+
+                    dbc.Label(
+
+                        "Company",
+
+                        style={
+                            "fontWeight": "600",
+                            "marginBottom": "8px"
+                        }
+
+                    ),
+
+                    dcc.Dropdown(
+
+                        id="auth-company-dropdown",
+
+                        placeholder="Select Company",
+
+                        options=[],
+
+                        clearable=False,
+
+                        style={
+                            "marginBottom": "28px"
+                        }
+
+                    ),
+
+                    # --------------------------------------------------
+                    # MESSAGE
+                    # --------------------------------------------------
 
                     html.Div(
 
                         id="auth-message-container",
 
                         style={
-                            "marginBottom": "20px"
+                            "marginBottom": "18px"
                         }
 
                     ),
 
-                    # -----------------------
-                    # Sign In Button
-                    # -----------------------
+                    # --------------------------------------------------
+                    # SIGN IN
+                    # --------------------------------------------------
 
                     dbc.Button(
 
-                        "Administrator Sign In",
+                        "Sign In",
 
-                        id="auth-btn-admin-login",
+                        id="auth-btn-signin",
 
                         color="primary",
 
                         style={
                             "width": "100%",
-                            "height": "54px",
+                            "height": "52px",
+                            "borderRadius": "12px",
                             "fontWeight": "700",
                             "fontSize": "16px",
-                            "borderRadius": "12px",
-                            "backgroundColor": "#4338CA",
+                            "backgroundColor": "#4F46E5",
                             "border": "none"
                         }
 
@@ -410,13 +388,13 @@ def right_panel():
 
                     html.Div(
 
-                        "────────── OR ──────────",
+                        "──────────  OR  ──────────",
 
                         style={
                             "textAlign": "center",
+                            "color": "#9CA3AF",
                             "marginTop": "28px",
-                            "marginBottom": "20px",
-                            "color": "#94A3B8",
+                            "marginBottom": "22px",
                             "fontWeight": "600"
                         }
 
@@ -424,13 +402,15 @@ def right_panel():
 
                     dbc.Button(
 
-                        "← Back to User Login",
+                        "Administrator Login",
 
-                        href="/login",
+                        id="btn-open-admin-login",
 
                         outline=True,
 
                         color="secondary",
+
+                        href="/admin-login",
 
                         style={
                             "width": "100%",
@@ -444,7 +424,7 @@ def right_panel():
                 ],
 
                 style={
-                    "width": "430px"
+                    "width": "460px"
                 }
 
             )
@@ -467,18 +447,18 @@ def right_panel():
 
     )
 
-# ==========================
-# ADMIN LOGIN PAGE
-# ==========================
+# ==========================================================
+# USER LOGIN PAGE
+# ==========================================================
 
-def generate_admin_login_page():
+def generate_user_login_page():
 
     return dbc.Container(
 
         [
 
             dcc.Store(
-                id="admin-session-store"
+                id="selected-company"
             ),
 
             dbc.Row(
