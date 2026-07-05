@@ -1,1 +1,235 @@
+from dash import html, dcc
+import dash_bootstrap_components as dbc
 
+
+# ==========================================================
+# THEME
+# ==========================================================
+
+PRIMARY = "#2563EB"
+TEXT = "#111827"
+TEXT_LIGHT = "#6B7280"
+BORDER = "#E5E7EB"
+BACKGROUND = "#F8FAFC"
+WHITE = "#FFFFFF"
+
+
+# ==========================================================
+# NAVIGATION ITEM
+# ==========================================================
+
+def nav_item(title, href, active=False):
+
+    return dcc.Link(
+
+        title,
+
+        href=href,
+
+        style={
+
+            "textDecoration": "none",
+
+            "padding": "18px 6px",
+
+            "marginRight": "34px",
+
+            "fontSize": "15px",
+
+            "fontWeight": "600",
+
+            "color": PRIMARY if active else TEXT,
+
+            "borderBottom": f"3px solid {PRIMARY}" if active else "3px solid transparent",
+
+            "transition": "all .2s ease"
+
+        }
+
+    )
+
+
+# ==========================================================
+# HEADER
+# ==========================================================
+
+def header(username="Administrator", role="Admin"):
+
+    return html.Div(
+
+        [
+
+            # ---------------------------------------------
+            # LEFT
+            # ---------------------------------------------
+
+            html.Div(
+
+                [
+
+                    html.Img(
+
+                        src="/assets/onex_software_logo.png",
+
+                        style={
+                            "height": "58px",
+                            "marginRight": "18px"
+                        }
+
+                    ),
+
+                    html.Div(
+
+                        [
+
+                            html.Div(
+
+                                "Onex AI Data Insight Platform",
+
+                                style={
+
+                                    "fontSize": "24px",
+
+                                    "fontWeight": "700",
+
+                                    "color": TEXT
+
+                                }
+
+                            ),
+
+                            html.Div(
+
+                                "Admin Console",
+
+                                style={
+
+                                    "fontSize": "14px",
+
+                                    "color": TEXT_LIGHT
+
+                                }
+
+                            )
+
+                        ]
+
+                    )
+
+                ],
+
+                style={
+
+                    "display": "flex",
+
+                    "alignItems": "center"
+
+                }
+
+            ),
+
+            # ---------------------------------------------
+            # RIGHT
+            # ---------------------------------------------
+
+            html.Div(
+
+                [
+
+                    html.Div(
+
+                        [
+
+                            html.Div(
+
+                                username,
+
+                                style={
+
+                                    "fontWeight": "700",
+
+                                    "fontSize": "15px"
+
+                                }
+
+                            ),
+
+                            html.Div(
+
+                                role,
+
+                                style={
+
+                                    "fontSize": "13px",
+
+                                    "color": TEXT_LIGHT
+
+                                }
+
+                            )
+
+                        ],
+
+                        style={
+
+                            "textAlign": "right",
+
+                            "marginRight": "18px"
+
+                        }
+
+                    ),
+
+                    dbc.Button(
+
+                        "Logout",
+
+                        id="btn-admin-logout",
+
+                        outline=True,
+
+                        color="danger",
+
+                        size="sm",
+
+                        style={
+
+                            "borderRadius": "8px",
+
+                            "padding": "7px 18px"
+
+                        }
+
+                    )
+
+                ],
+
+                style={
+
+                    "display": "flex",
+
+                    "alignItems": "center"
+
+                }
+
+            )
+
+        ],
+
+        style={
+
+            "display": "flex",
+
+            "justifyContent": "space-between",
+
+            "alignItems": "center",
+
+            "padding": "18px 40px",
+
+            "background": WHITE,
+
+            "borderBottom": f"1px solid {BORDER}"
+
+        }
+
+    )
