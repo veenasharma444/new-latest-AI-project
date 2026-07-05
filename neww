@@ -1,518 +1,416 @@
+"""
+Dedicated Authentication Page
+Enhanced login and signup with separate flows
+Full-screen page with no navbar visible during auth
+Authentication Page (Updated with Role Support)
+"""
 
-from dash import html, dcc
 import dash_bootstrap_components as dbc
+from dash import html, dcc, Input, Output, State, callback
+from core.config import NAVY, GOLD, PRIMARY_BG, CARD_BG, TEXT, TEXT_LIGHT, BORDER, PRIMARY
+from core.db_connector import get_session
+from core.app_db import Role
 
 
-# ==========================================================
-# COLORS
-# ==========================================================
+def generate_auth_page():
+    """Generate a beautiful full-screen standalone authentication page"""
+    
+    return html.Div([
+        # Full-screen auth page (no navbar)
+        html.Div([
+            dbc.Row([
+                # Left Side - Branding & Features
+                dbc.Col([
+                    html.Div([
+                        # Logo
+                        html.Div([
+                            html.Div("◆", style={'fontSize': '56px', 'color': GOLD, 'marginBottom': '15px'}),
+                            html.H1("ONEX AI", style={
+                                'color': '#FFFFFF', 'fontWeight': '800', 
+                                'marginBottom': '4px', 'fontSize': '42px', 'letterSpacing': '2px'
+                            }),
+                            html.P("Data Insight Platform", style={
+                                'color': GOLD, 'fontSize': '16px', 'fontWeight': '600', 
+                                'margin': '0', 'letterSpacing': '1px'
+                            }),
+                        ], style={'textAlign': 'center', 'marginBottom': '60px'}),
+                        
+                        # Features List
+                        html.Div([
+                            html.H3("Intelligent Analytics", style={
+                                'color': '#FFFFFF', 'fontWeight': '700', 
+                                'marginBottom': '24px', 'fontSize': '24px'
+                            }),
+                            *[
+                                html.Div([
+                                    html.Div("✓", style={
+                                        'color': GOLD, 'fontWeight': '800', 'fontSize': '20px',
+                                        'marginRight': '16px', 'width': '24px'
+                                    }),
+                                    html.Div(feature, style={
+                                        'color': TEXT_LIGHT, 'fontSize': '15px', 
+                                        'fontWeight': '500', 'lineHeight': '1.6'
+                                    }),
+                                ], style={'display': 'flex', 'alignItems': 'flex-start', 'marginBottom': '18px'})
+                                for feature in [
+                                    "Auto-detect data patterns in seconds",
+                                    "Generate insightful dashboards automatically",
+                                    "Connect multiple data sources seamlessly",
+                                    "AI-powered insights and recommendations",
+                                    "Real-time data analysis and monitoring",
+                                ]
+                            ],
+                        ], style={'marginTop': '40px'}),
+                        
+                    ], style={
+                        'backgroundColor': NAVY,
+                        'padding': '60px 50px',
+                        'minHeight': '100vh',
+                        'display': 'flex',
+                        'flexDirection': 'column',
+                        'justifyContent': 'center',
+                        'color': '#FFFFFF',
+                    }),
+                ], xs=12, md=6, style={'padding': '0'}),
+                
+                # Right Side - Form
+                dbc.Col([
+                    html.Div([
+                        # Tab Selection
+                        dbc.Row([
+                            dbc.Col([
+                                html.Button(
+                                    "User Login",
+                                    id='auth-btn-signin-tab',
+                                    n_clicks=1,
+                                    style={
+                                        'background': 'none',
+                                        'border': 'none',
+                                        'fontSize': '18px',
+                                        'fontWeight': '700',
+                                        'color': NAVY,
+                                        'cursor': 'pointer',
+                                        'paddingBottom': '12px',
+                                        'borderBottom': f'3px solid {NAVY}',
+                                        'transition': 'all 0.3s ease',
+                                    }
+                                ),
+                            ], width=6),
+                            dbc.Col([
+                                html.Button(
+                                    "Admin Login",
+                                    id='auth-btn-signup-tab',
+                                    n_clicks=0,
+                                    style={
+                                        'background': 'none',
+                                        'border': 'none',
+                                        'fontSize': '18px',
+                                        'fontWeight': '700',
+                                        'color': TEXT_LIGHT,
+                                        'cursor': 'pointer',
+                                        'paddingBottom': '12px',
+                                        'transition': 'all 0.3s ease',
+                                    }
+                                ),
+                            ], width=6),
+                        ], style={
+                            'borderBottom': f'2px solid {BORDER}', 
+                            'marginBottom': '40px',
+                            'paddingLeft': '0',
+                            'paddingRight': '0',
+                        }),
+                        
+                        # Sign In Form
+                        html.Div(
+                            id='auth-signin-form-container',
+                            children=_get_signin_form(),
+                            style={'display': 'block'}
+                        ),
 
-PRIMARY = "#4F46E5"
-PRIMARY_DARK = "#312E81"
-LEFT_BG = "#2D2676"
-TEXT_LIGHT = "#D1D5DB"
-WHITE = "#FFFFFF"
+                        # Sign Up Form
+                        html.Div(
+                            id='auth-signup-form-container',
+                            # children=_get_signup_form(),
+                            children=_get_admin_login_form(),
+                            style={'display': 'none'}
+                        ),
+                        
+                        # Error/Success Messages
+                        html.Div(id='auth-message-container', style={'marginTop': '20px'}),
+                        
+                    ], style={
+                        'padding': '60px 40px',
+                        'minHeight': '100vh',
+                        'display': 'flex',
+                        'flexDirection': 'column',
+                        'justifyContent': 'center',
+                    }),
+                ], xs=12, md=6, style={'padding': '0', 'backgroundColor': PRIMARY_BG}),
+            ], style={'margin': '0', 'height': '100vh'}),
+            
+        ], style={'width': '100%', 'margin': '0', 'padding': '0'})
+    ], style={'width': '100%', 'margin': '0', 'padding': '0'})
+    
 
-
-# ==========================================================
-# FEATURE CARD
-# ==========================================================
-
-def feature_card(icon, title, subtitle):
-
-    return dbc.Card(
-
-        dbc.CardBody([
-
-            html.Div(
-                icon,
+def _get_signin_form():
+    """Sign In form component"""
+    return html.Div([
+        # Username
+        html.Div([
+            html.Label("Username", style={
+                'fontSize': '14px', 'fontWeight': '600', 'color': TEXT, 
+                'display': 'block', 'marginBottom': '8px'
+            }),
+            dcc.Input(
+                id='auth-signin-username',
+                type='text',
                 style={
-                    "fontSize": "28px",
-                    "marginBottom": "10px"
+                    'padding': '2px 8px',
+                    'borderRadius': '6px',
+                    'border': f'1px solid {BORDER}',
+                    'fontSize': '15px',
+                    'boxSizing': 'border-box',
+                    'width': '100%',
+                    'fontFamily': 'inherit',
+                    'transition': 'border-color 0.3s ease',
                 }
             ),
-
-            html.H4(
-                title,
+        ], style={'marginBottom': '20px'}),
+        
+        # Password
+        html.Div([
+            html.Label("Password", style={
+                'fontSize': '14px', 'fontWeight': '600', 'color': TEXT, 
+                'display': 'block', 'marginBottom': '8px'
+            }),
+            dcc.Input(
+                id='auth-signin-password',
+                type='password',
                 style={
-                    "color": "white",
-                    "fontWeight": "700",
-                    "marginBottom": "4px"
+                    'padding': '2px 8px',
+                    'borderRadius': '6px',
+                    'border': f'1px solid {BORDER}',
+                    'fontSize': '15px',
+                    'boxSizing': 'border-box',
+                    'width': '100%',
+                    'fontFamily': 'inherit',
+                    'transition': 'border-color 0.3s ease',
                 }
             ),
+        ], style={'marginBottom': '30px'}),
+        
+        # Sign In Button
+        html.Button(
+            "User Login",
+            id='auth-btn-signin',
+            n_clicks=0,
+            style={
+                'width': '100%',
+                'backgroundColor': NAVY,
+                'borderColor': NAVY,
+                'color': '#FFFFFF',
+                'fontWeight': '700',
+                'fontSize': '15px',
+                'padding': '12px 16px',
+                'borderRadius': '6px',
+                'border': f'2px solid {NAVY}',
+                'cursor': 'pointer',
+                'transition': 'all 0.3s ease',
+            }
+        ),
+        
 
-            html.Div(
-                subtitle,
-                style={
-                    "color": "#C7D2FE",
-                    "fontSize": "14px"
-                }
+    ])
+
+
+# def _get_signup_form():
+#     return html.Div([
+
+#         html.Div([
+#             html.Label("Full Name"),
+#             dcc.Input(id='auth-signup-name', type='text', style={'width': '100%'})
+#         ], style={'marginBottom': '15px'}),
+
+#         html.Div([
+#             html.Label("Email"),
+#             dcc.Input(id='auth-signup-email', type='email', style={'width': '100%'})
+#         ], style={'marginBottom': '15px'}),
+
+#         html.Div([
+#             html.Label("Username"),
+#             dcc.Input(id='auth-signup-username', type='text', style={'width': '100%'})
+#         ], style={'marginBottom': '15px'}),
+
+#         html.Div([
+#             html.Label("Password"),
+#             dcc.Input(id='auth-signup-password', type='password', style={'width': '100%'})
+#         ], style={'marginBottom': '15px'}),
+
+#         html.Div([
+#             html.Label("Confirm Password"),
+#             dcc.Input(id='auth-signup-password-confirm', type='password', style={'width': '100%'})
+#         ], style={'marginBottom': '15px'}),
+
+#         # ✅ ✅ ROLE DROPDOWN ADDED
+#         html.Div([
+#             html.Label("Role"),
+#             dcc.Dropdown(
+#                 id='auth-signup-role',
+#                 placeholder='Select Role'
+#             )
+#         ], style={'marginBottom': '20px'}),
+
+#         html.Button(
+#             "Create Account",
+#             id='auth-btn-signup',
+#             style={
+#                 'width': '100%',
+#                 'backgroundColor': NAVY,
+#                 'color': '#FFFFFF'
+#             }
+#         )
+#     ])
+
+
+def _get_admin_login_form():
+    """Admin Login Form"""
+
+    return html.Div([
+
+        html.Div([
+            html.Label("Admin Username"),
+            dcc.Input(
+                id="auth-admin-username",
+                type="text",
+                style={"width": "100%"}
             )
+        ], style={"marginBottom": "15px"}),
 
-        ]),
-
-        style={
-            "background": "rgba(255,255,255,0.06)",
-            "border": "1px solid rgba(255,255,255,0.08)",
-            "borderRadius": "16px",
-            "height": "150px"
-        }
-    )
-
-
-# ==========================================================
-# LEFT PANEL
-# ==========================================================
-
-def left_panel():
-
-    return html.Div(
-
-        [
-
-            html.Br(),
-
-            html.Img(
-                src="/assets/onex_software_logo.png",
-                style={
-                    "width": "220px",
-                    "marginBottom": "40px"
-                }
-            ),
-
-            html.H1(
-
-                "AI Powered Data Insight Platform",
-
-                style={
-                    "color": "white",
-                    "fontSize": "54px",
-                    "fontWeight": "700",
-                    "lineHeight": "1.15",
-                    "marginBottom": "25px"
-                }
-
-            ),
-
-            html.P(
-
-                "Leverage enterprise-grade AI to analyze datasets, build dashboards, generate KPIs and visualize business insights instantly.",
-
-                style={
-                    "color": TEXT_LIGHT,
-                    "fontSize": "21px",
-                    "lineHeight": "1.8",
-                    "marginBottom": "45px"
-                }
-
-            ),
-
-            dbc.Row(
-
-                [
-
-                    dbc.Col(
-
-                        feature_card(
-                            "🤖",
-                            "AI",
-                            "Smart Analytics"
-                        ),
-
-                        width=6
-                    ),
-
-                    dbc.Col(
-
-                        feature_card(
-                            "📊",
-                            "Dashboard",
-                            "Interactive Reports"
-                        ),
-
-                        width=6
-                    )
-
-                ],
-
-                className="mb-4"
-
-            ),
-
-            dbc.Row(
-
-                [
-
-                    dbc.Col(
-
-                        feature_card(
-                            "🔒",
-                            "Secure",
-                            "Role Based Access"
-                        ),
-
-                        width=6
-                    ),
-
-                    dbc.Col(
-
-                        feature_card(
-                            "⚡",
-                            "Fast",
-                            "Instant Insights"
-                        ),
-
-                        width=6
-                    )
-
-                ]
-
-            ),
-
-            html.Br(),
-
-            dbc.Badge(
-
-                "●  System Online • All Services Running",
-
-                color="success",
-
-                pill=True,
-
-                style={
-                    "padding": "12px 18px",
-                    "fontSize": "15px"
-                }
-
+        html.Div([
+            html.Label("Password"),
+            dcc.Input(
+                id="auth-admin-password",
+                type="password",
+                style={"width": "100%"}
             )
+        ], style={"marginBottom": "20px"}),
 
-        ],
+        html.Button(
+            "Admin Login",
+            id="auth-btn-admin-login",
+            n_clicks=0,
+            style={
+                "width": "100%",
+                "backgroundColor": NAVY,
+                "color": "#FFFFFF"
+            }
+        )
 
-        style={
+    ])
 
-            "background": f"linear-gradient(180deg,{PRIMARY_DARK}, {LEFT_BG})",
-            "height": "100vh",
-            "padding": "60px",
-            "display": "flex",
-            "flexDirection": "column",
-            "justifyContent": "center"
+# ════════════════════════════════════════════════════════════════
+# CALLBACKS TAB SWITCH CALLBACK (SEPARATE)
+# ════════════════════════════════════════════════════════════════
 
-        }
+@callback(
+    [Output('auth-signin-form-container', 'style'),
+    Output('auth-signup-form-container', 'style'),
+    Output('auth-btn-signin-tab', 'style'),
+    Output('auth-btn-signup-tab', 'style')],
+    [Input('auth-btn-signin-tab', 'n_clicks'),
+    Input('auth-btn-signup-tab', 'n_clicks')],
+    prevent_initial_call=False
+)
 
+
+# @callback(
+#     [
+#         Output("auth-btn-user-tab","style"),
+#         Output("auth-btn-admin-tab","style")
+#     ],
+#     [
+#         Input("auth-btn-user-tab","n_clicks"),
+#         Input("auth-btn-admin-tab","n_clicks")
+#     ]
+# )
+
+def switch_auth_tabs(user_clicks, admin_clicks):
+    """Switch between User and Admin forms"""
+    # signin_active = not signup_clicks or signin_clicks >= signup_clicks
+    
+    # signin_style = {
+    #     'background': 'none',
+    #     'border': 'none',
+    #     'fontSize': '18px',
+    #     'fontWeight': '700',
+    #     'color': NAVY if signin_active else TEXT_LIGHT,
+    #     'cursor': 'pointer',
+    #     'paddingBottom': '12px',
+    #     'borderBottom': f'3px solid {NAVY}' if signin_active else 'none',
+    #     'transition': 'all 0.3s ease',
+    # }
+    
+    # signup_style = {
+    #     'background': 'none',
+    #     'border': 'none',
+    #     'fontSize': '18px',
+    #     'fontWeight': '700',
+    #     'color': NAVY if not signin_active else TEXT_LIGHT,
+    #     'cursor': 'pointer',
+    #     'paddingBottom': '12px',
+    #     'transition': 'all 0.3s ease',
+    # }
+    
+    # return (
+    #     {'display': 'block'} if signin_active else {'display': 'none'},
+    #     {'display': 'block'} if not signin_active else {'display': 'none'},
+    #     signin_style,
+    #     signup_style,
+    # )
+    
+    user_active = (user_clicks or 0) >= (admin_clicks or 0)
+    user_style = {
+        'background': 'none',
+        'border': 'none',
+        'fontSize': '18px',
+        'fontWeight': '700',
+        'color': NAVY if user_active else TEXT_LIGHT,
+        'cursor': 'pointer',
+        'paddingBottom': '12px',
+        'borderBottom': f'3px solid {NAVY}' if user_active else 'none',
+        'transition': 'all 0.3s ease',
+    }
+    
+    admin_style = {
+        'background': 'none',
+        'border': 'none',
+        'fontSize': '18px',
+        'fontWeight': '700',
+        'color': NAVY if not user_active else TEXT_LIGHT,
+        'cursor': 'pointer',
+        'paddingBottom': '12px',
+        'transition': 'all 0.3s ease',
+    }
+    
+    return (
+        {'display': 'block'} if user_active else {'display': 'none'},
+        {'display': 'block'} if not user_active else {'display': 'none'},
+        user_style,
+        admin_style,
     )
     
-# ==========================================================
-# RIGHT PANEL
-# ==========================================================
-
-def right_panel():
-
-    return html.Div(
-
-        [
-
-            html.Div(
-
-                [
-
-                    html.Img(
-
-                        src="/assets/onex_software_logo.png",
-
-                        style={
-                            "width": "230px",
-                            "marginBottom": "35px"
-                        }
-
-                    ),
-
-                    html.H2(
-
-                        "Welcome Back",
-
-                        style={
-                            "fontWeight": "700",
-                            "fontSize": "38px",
-                            "marginBottom": "8px",
-                            "color": "#1F2937"
-                        }
-
-                    ),
-
-                    html.P(
-
-                        "Sign in to continue to ONEX AI Platform",
-
-                        style={
-                            "color": "#6B7280",
-                            "marginBottom": "35px",
-                            "fontSize": "16px"
-                        }
-
-                    ),
-
-                    # --------------------------------------------------
-                    # Username
-                    # --------------------------------------------------
-
-                    dbc.Label(
-
-                        "Username",
-
-                        style={
-                            "fontWeight": "600",
-                            "marginBottom": "8px"
-                        }
-
-                    ),
-
-                    dbc.Input(
-
-                        id="auth-signin-username",
-
-                        type="text",
-
-                        placeholder="Enter username",
-
-                        className="login-input",
-
-                        style={
-                            "height": "52px",
-                            "borderRadius": "12px",
-                            "marginBottom": "20px"
-                        }
-
-                    ),
-
-                    # --------------------------------------------------
-                    # Password
-                    # --------------------------------------------------
-
-                    dbc.Label(
-
-                        "Password",
-
-                        style={
-                            "fontWeight": "600",
-                            "marginBottom": "8px"
-                        }
-
-                    ),
-
-                    dbc.Input(
-
-                        id="auth-signin-password",
-
-                        type="password",
-
-                        placeholder="Enter password",
-
-                        className="login-input",
-
-                        style={
-                            "height": "52px",
-                            "borderRadius": "12px",
-                            "marginBottom": "20px"
-                        }
-
-                    ),
-
-                    # --------------------------------------------------
-                    # Company
-                    # --------------------------------------------------
-
-                    dbc.Label(
-
-                        "Company",
-
-                        style={
-                            "fontWeight": "600",
-                            "marginBottom": "8px"
-                        }
-
-                    ),
-
-                    dcc.Dropdown(
-
-                        id="auth-company-dropdown",
-
-                        placeholder="Select Company",
-
-                        options=[],
-
-                        clearable=False,
-
-                        style={
-                            "marginBottom": "28px"
-                        }
-
-                    ),
-
-                    # --------------------------------------------------
-                    # MESSAGE
-                    # --------------------------------------------------
-
-                    html.Div(
-
-                        id="auth-message-container",
-
-                        style={
-                            "marginBottom": "18px"
-                        }
-
-                    ),
-
-                    # --------------------------------------------------
-                    # SIGN IN
-                    # --------------------------------------------------
-
-                    dbc.Button(
-
-                        "Sign In",
-
-                        id="auth-btn-signin",
-
-                        color="primary",
-
-                        style={
-                            "width": "100%",
-                            "height": "52px",
-                            "borderRadius": "12px",
-                            "fontWeight": "700",
-                            "fontSize": "16px",
-                            "backgroundColor": "#4F46E5",
-                            "border": "none"
-                        }
-
-                    ),
-
-                    html.Div(
-
-                        "──────────  OR  ──────────",
-
-                        style={
-                            "textAlign": "center",
-                            "color": "#9CA3AF",
-                            "marginTop": "28px",
-                            "marginBottom": "22px",
-                            "fontWeight": "600"
-                        }
-
-                    ),
-
-                    dbc.Button(
-
-                        "Administrator Login",
-
-                        id="btn-open-admin-login",
-
-                        outline=True,
-
-                        color="secondary",
-
-                        href="/admin-login",
-
-                        style={
-                            "width": "100%",
-                            "height": "50px",
-                            "borderRadius": "12px",
-                            "fontWeight": "600"
-                        }
-
-                    )
-
-                ],
-
-                style={
-                    "width": "460px"
-                }
-
-            )
-
-        ],
-
-        style={
-
-            "height": "100vh",
-
-            "display": "flex",
-
-            "justifyContent": "center",
-
-            "alignItems": "center",
-
-            "backgroundColor": "#F8FAFC"
-
-        }
-
-    )
-
-# ==========================================================
-# USER LOGIN PAGE
-# ==========================================================
-
-def generate_user_login_page():
-
-    return dbc.Container(
-
-        [
-
-            dcc.Store(
-                id="selected-company"
-            ),
-
-            dbc.Row(
-
-                [
-
-                    dbc.Col(
-
-                        left_panel(),
-
-                        md=7,
-
-                        style={
-                            "padding": "0"
-                        }
-
-                    ),
-
-                    dbc.Col(
-
-                        right_panel(),
-
-                        md=5,
-
-                        style={
-                            "padding": "0"
-                        }
-
-                    )
-
-                ],
-
-                className="g-0",
-
-                style={
-                    "height": "100vh"
-                }
-
-            )
-
-        ],
-
-        fluid=True,
-
-        style={
-
-            "padding": "0",
-
-            "margin": "0",
-
-            "overflow": "hidden",
-
-            "backgroundColor": "#F8FAFC"
-
-        }
-
-    )
+@callback(    
+    Output('auth-signup-role', 'options'),
+    Input('auth-signup-role', 'id'),
+)
+def load_roles(_):
+    try:
+        session = get_session()
+        roles = session.query(Role).all()
+        session.close()
+
+        return [{"label": r.role_name, "value": r.role_id} for r in roles]
+
+    except Exception as e:
+        print(f"[ERROR] load_roles: {e}")
+        return []
