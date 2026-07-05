@@ -1,106 +1,107 @@
-def header(title):
+from dash import html, dcc
+import dash_bootstrap_components as dbc
+from components.admin_layout import admin_layout
 
-    return html.Div(
+def layout():
 
-        [
+    card_style = {
+        "border": "1px solid #E2E8F0",
+        "borderRadius": "10px",
+        "padding": "25px",
+        "height": "160px",
+        "cursor": "pointer",
+        "transition": "0.2s",
+        "backgroundColor": "white",
+        "boxShadow": "0 2px 6px rgba(0,0,0,0.08)"
+    }
 
-            html.H2(
+    return dbc.Container([
 
-                title,
+        dbc.Row(
+            dbc.Col([
+                html.H2(
+                    "Admin Dashboard",
+                    style={"fontWeight": "700"}
+                ),
 
-                style={
-                    "fontWeight": "700",
-                    "margin": "0"
-                }
+                html.P(
+                    "Manage users, companies and company mappings.",
+                    style={"color": "#666"}
+                )
+            ]),
+            className="mt-4 mb-4"
+        ),
 
-            ),
+        dbc.Row([
 
-            html.Div(
+            dbc.Col(
+                dcc.Link(
 
-                [
-
-                    html.Div(
-                        "Administrator",
-                        style={
-                            "fontWeight": "600"
-                        }
+                    dbc.Card(
+                        dbc.CardBody([
+                            html.H4("Users"),
+                            html.P("Create and manage users.")
+                        ]),
+                        style=card_style
                     ),
 
-                    html.Div(
-                        "Admin",
-                        style={
-                            "fontSize": "13px",
-                            "color": "#6B7280"
-                        }
-                    )
+                    href="/users",
+                    style={"textDecoration": "none", "color": "inherit"}
+                ),
+                md=3
+            ),
 
-                ],
+            dbc.Col(
+                dcc.Link(
 
-                style={
-                    "textAlign": "right"
-                }
+                    dbc.Card(
+                        dbc.CardBody([
+                            html.H4("Companies"),
+                            html.P("Create and manage companies.")
+                        ]),
+                        style=card_style
+                    ),
 
-            )
+                    href="/companies",
+                    style={"textDecoration": "none", "color": "inherit"}
+                ),
+                md=3
+            ),
 
-        ],
+            dbc.Col(
+                dcc.Link(
 
-        style={
+                    dbc.Card(
+                        dbc.CardBody([
+                            html.H4("User Company Mapping"),
+                            html.P("Assign companies to users.")
+                        ]),
+                        style=card_style
+                    ),
 
-            "display": "flex",
+                    href="/mapping",
+                    style={"textDecoration": "none", "color": "inherit"}
+                ),
+                md=3
+            ),
 
-            "justifyContent": "space-between",
+            dbc.Col(
+                dcc.Link(
 
-            "alignItems": "center",
+                    dbc.Card(
+                        dbc.CardBody([
+                            html.H4("Portal"),
+                            html.P("Open User Portal.")
+                        ]),
+                        style=card_style
+                    ),
 
-            "padding": "30px",
+                    href="/upload",
+                    style={"textDecoration": "none", "color": "inherit"}
+                ),
+                md=3
+            ),
 
-            "background": "white",
+        ])
 
-            "borderBottom": "1px solid #E5E7EB"
-
-        }
-
-    )
-
-def admin_layout(title, body, active="dashboard"):
-
-    return html.Div(
-
-        [
-
-            sidebar(active),
-
-            html.Div(
-
-                [
-
-                    header(title),
-
-                    html.Div(
-
-                        body,
-
-                        style={
-                            "padding": "30px"
-                        }
-
-                    )
-
-                ],
-
-                style={
-
-                    "marginLeft": "250px",
-
-                    "minHeight": "100vh",
-
-                    "background": "#F3F4F6"
-
-                }
-
-            )
-
-        ]
-
-    )
-
+    ], fluid=True)
