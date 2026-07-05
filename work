@@ -1,58 +1,99 @@
-@app.callback(
-    Output('url', 'pathname', allow_duplicate=True),
-    Output('auth-message-container', 'children', allow_duplicate=True),
-    Output('session-state', 'data', allow_duplicate=True),
-    Input('auth-btn-admin-login', 'n_clicks'),
-    State('auth-admin-username', 'value'),
-    State('auth-admin-password', 'value'),
-    State('session-state', 'data'),
-    prevent_initial_call=True
-)
-def handle_admin_login(n_clicks, username, password, session_data):
-    print("handle_admin_login fired")
-    if n_clicks is None or n_clicks == 0:
-        raise dash.exceptions.PreventUpdate
+from dash import html, dcc
+import dash_bootstrap_components as dbc
+from components.admin_layout import admin_layout
 
-    if not username or not password:
-        return (
-            dash.no_update,
-            dbc.Alert("Please enter username and password", color="warning"),
-            dash.no_update
-        )
 
-    session_data = session_data or {}
+CARD_STYLE = {
+    "backgroundColor": "white",
+    "border": "1px solid #E5E7EB",
+    "borderRadius": "12px",
+    "padding": "30px",
+    "height": "180px",
+    "cursor": "pointer",
+    "boxShadow": "0 2px 8px rgba(0,0,0,0.06)"
+}
 
-    from core.auth import authenticate_user
-    result = authenticate_user(username, password)
-    
-    from core.auth import get_user_companies
-    companies = get_user_companies(
-        result["user_data"]["id"]
-    ) if result["success"] else []
 
-    if not result["success"]:
-        return (
-            dash.no_update,
-            dbc.Alert(result["message"], color="danger"),
-            dash.no_update
-        )
+def admin_card(icon, title, description, href):
+    return dbc.Col(
+        dcc.Link(
+            dbc.Card(
+                dbc.CardBody([
+                    html.Div(
+                        icon,
+                        style={
+                            "fontSize": "42px",
+                            "marginBottom": "15px"
+                        }
+                    ),
 
-    # ADMIN CHECK
-    if result["user_data"]["role_id"] != 1:
-        return (
-            dash.no_update,
-            dbc.Alert("You are not an Administrator.", color="danger"),
-            dash.no_update
-        )
+                    html.H4(
+                        title,
+                        style={
+                            "fontWeight": "700"
+                        }
+                    ),
 
-    session_data.update({
-        "is_authenticated": True,
-        "username": result["user_data"]["username"],
-        "user_id": result["user_data"]["id"],
-        "email": result["user_data"]["email"],
-        "name": result["user_data"]["name"],
-        "role_id": result["user_data"]["role_id"],
-        "companies": companies
-    })
+                    html.P(
+                        description,
+                        style={
+                            "color": "#6B7280"
+                        }
+                    )
+                ]),
+                style=CARD_STYLE
+            ),
+            href=href,
+            style={
+                "textDecoration": "none",
+                "color": "inherit"
+            }
+        ),
+        md=4
+    )
 
-    return "/admin", dash.no_update, session_data
+
+def layout():
+
+    body = [
+
+        html.P(
+            "Welcome to the administration console. Select a module below.",
+            style={
+                "color": "#6B7280",
+                "marginBottom": "35px"
+            }
+        ),
+
+        dbc.Row([
+
+            admin_card(
+                "👤",
+                "Users",
+                "Create and manage users.",
+                "/users"
+            ),
+
+            admin_card(
+                "🏢",
+                "Companies",
+                "Create and manage companies.",
+                "/companies"
+            ),
+
+            admin_card(
+                "🔗",
+                "Mapping",
+                "Assign companies to users.",
+                "/mapping"
+            ),
+
+        ], className="g-4")
+
+    ]
+
+    return admin_layout(
+        title="Admin Dashboard",
+        body=body,
+        active="home"  #home
+    )
