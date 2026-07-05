@@ -1,1 +1,137 @@
 
+from dash import html
+import dash_bootstrap_components as dbc
+
+
+SIDEBAR_BG = "#111827"
+PRIMARY = "#2563EB"
+TEXT = "#D1D5DB"
+ACTIVE = "#3B82F6"
+
+def sidebar_item(icon, text, href, active=False):
+
+    return dbc.NavLink(
+
+        [
+
+            html.Span(
+                icon,
+                style={"fontSize": "18px", "marginRight": "12px"}
+            ),
+
+            html.Span(text)
+
+        ],
+
+        href=href,
+
+        active=active,
+
+        style={
+
+            "color": "white" if active else TEXT,
+
+            "background": ACTIVE if active else "transparent",
+
+            "borderRadius": "10px",
+
+            "padding": "14px 18px",
+
+            "marginBottom": "8px",
+
+            "fontWeight": "600",
+
+            "display": "flex",
+
+            "alignItems": "center"
+
+        }
+
+    )
+
+def sidebar(active="dashboard"):
+
+    return html.Div(
+
+        [
+
+            html.Div(
+
+                html.Img(
+
+                    src="/assets/onex_software_logo.png",
+
+                    style={
+                        "width": "170px"
+                    }
+
+                ),
+
+                style={
+                    "padding": "25px"
+                }
+
+            ),
+
+            dbc.Nav(
+
+                [
+
+                    sidebar_item(
+                        "🏠",
+                        "Dashboard",
+                        "/admin",
+                        active == "dashboard"
+                    ),
+
+                    sidebar_item(
+                        "👤",
+                        "Users",
+                        "/users",
+                        active == "users"
+                    ),
+
+                    sidebar_item(
+                        "🏢",
+                        "Companies",
+                        "/companies",
+                        active == "companies"
+                    ),
+
+                    sidebar_item(
+                        "🔗",
+                        "Mapping",
+                        "/mapping",
+                        active == "mapping"
+                    )
+
+                ],
+
+                vertical=True,
+
+                pills=False
+
+            )
+
+        ],
+
+        style={
+
+            "background": SIDEBAR_BG,
+
+            "width": "250px",
+
+            "height": "100vh",
+
+            "position": "fixed",
+
+            "left": 0,
+
+            "top": 0,
+
+            "paddingTop": "10px"
+
+        }
+
+    )
+
