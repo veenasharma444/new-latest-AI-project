@@ -3,72 +3,97 @@ import dash_bootstrap_components as dbc
 from components.admin_layout import admin_layout
 
 
-def generate_companies_page():
+CARD_STYLE = {
+    "backgroundColor": "white",
+    "border": "1px solid #E5E7EB",
+    "borderRadius": "12px",
+    "padding": "30px",
+    "height": "180px",
+    "cursor": "pointer",
+    "boxShadow": "0 2px 8px rgba(0,0,0,0.06)"
+}
 
-    body = html.Div([
 
-        dbc.Card([
-            dbc.CardBody([
+def admin_card(icon, title, description, href):
+    return dbc.Col(
+        dcc.Link(
+            dbc.Card(
+                dbc.CardBody([
+                    html.Div(
+                        icon,
+                        style={
+                            "fontSize": "42px",
+                            "marginBottom": "15px"
+                        }
+                    ),
 
-                html.H5("Create Company"),
+                    html.H4(
+                        title,
+                        style={
+                            "fontWeight": "700"
+                        }
+                    ),
 
-                dbc.Row([
+                    html.P(
+                        description,
+                        style={
+                            "color": "#6B7280"
+                        }
+                    )
+                ]),
+                style=CARD_STYLE
+            ),
+            href=href,
+            style={
+                "textDecoration": "none",
+                "color": "inherit"
+            }
+        ),
+        md=4
+    )
 
-                    dbc.Col([
-                        html.Label("Company Name"),
-                        dcc.Input(
-                            id="company-name",
-                            className="form-control"
-                        )
-                    ], width=4),
 
-                    dbc.Col([
-                        html.Label("Company Code"),
-                        dcc.Input(
-                            id="company-code",
-                            className="form-control"
-                        )
-                    ], width=4),
+def layout():
 
-                    dbc.Col([
-                        html.Label("Status"),
-                        dcc.Dropdown(
-                            id="company-status",
-                            options=[
-                                {"label": "Active", "value": True},
-                                {"label": "Inactive", "value": False},
-                            ],
-                            value=True
-                        )
-                    ], width=4),
+    body = [
 
-                ], className="mb-3"),
+        html.P(
+            "Welcome to the administration console. Select a module below.",
+            style={
+                "color": "#6B7280",
+                "marginBottom": "35px"
+            }
+        ),
 
-                dbc.Button(
-                    "Create Company",
-                    id="btn-create-company",
-                    color="primary"
-                ),
+        dbc.Row([
 
-                html.Div(
-                    id="company-msg",
-                    style={"marginTop": "10px"}
-                )
+            admin_card(
+                "👤",
+                "Users",
+                "Create and manage users.",
+                "/users"
+            ),
 
-            ])
-        ], className="mb-4"),
+            admin_card(
+                "🏢",
+                "Companies",
+                "Create and manage companies.",
+                "/companies"
+            ),
 
-        dbc.Card([
-            dbc.CardBody([
-                html.H5("Company List"),
-                html.Div(id="company-table")
-            ])
-        ])
+            admin_card(
+                "🔗",
+                "Mapping",
+                "Assign companies to users.",
+                "/mapping"
+            ),
 
-    ])
+        ], className="g-4")
+
+    ]
 
     return admin_layout(
-        title="Company Master",
+        title="Admin Dashboard",
         body=body,
-        active="companies"
+        active="home"  #home
     )
