@@ -1,261 +1,148 @@
-from dash import html, dcc
-import dash_bootstrap_components as dbc
+def display_page(pathname, df_json, profiles_dict,  objective_data, config_dict, ai_suggestions, session_data, store_kpi_data, store_filter_data):
+    """Route to appropriate page based on URL and authentication"""
+    if not pathname or pathname == '':
+        pathname = '/'
 
+    pathname = str(pathname).strip()
+    
+    session_data = session_data or {}
+    is_authenticated = session_data.get("is_authenticated", False)
+    role_id = session_data.get("role_id")
 
-PRIMARY = "#2563EB"
-TEXT = "#374151"
-LIGHT = "#6B7280"
-BORDER = "#E5E7EB"
-BG = "#F8FAFC"
+    #  Block all pages except /auth if not authenticated
+    # if pathname != '/auth' and not is_authenticated:
+    #     return page_auth.generate_auth_page()
+    
+    # Block all pages except login pages
+    if pathname not in ['/', '/login', '/admin-login'] and not is_authenticated:
+        return page_user_login.generate_user_login_page()
 
+    #  Redirect authenticated users away from /auth page
+    # if pathname == '/auth' and is_authenticated:
+    if pathname in ['/auth', '/login', '/admin-login'] and is_authenticated:
+        if role_id == 1:
+            from pages import page_companies
+            return page_companies.generate_companies_page()
+        elif role_id == 2:
+            return page_upload.generate_upload_page()
+   
+    try:
+        # Show auth page
+        # if pathname == '/auth' or pathname == '/login' or pathname == '/':
+        #     return page_auth.generate_auth_page()
+        
+        if pathname == "/" or pathname == '/login':
+            return page_user_login.generate_user_login_page()
+        
+        elif pathname == '/admin-login':
+            return page_admin_login.generate_admin_login_page()
 
-def nav_item(name, href, active=False):
-    return dcc.Link(
-        name,
-        href=href,
-        style={
-            "textDecoration": "none",
-            "padding": "22px 8px",
-            "marginLeft": "28px",
-            "fontWeight": "600",
-            "fontSize": "15px",
-            "color": PRIMARY if active else TEXT,
-            "borderBottom": f"3px solid {PRIMARY}" if active else "3px solid transparent",
-            "transition": "0.2s"
-        }
-    )
-
-
-def admin_layout(title, body, active="home", username="Administrator"):
-
-    return html.Div(
-
-        [
-
-            # ==========================================================
-            # TOP HEADER
-            # ==========================================================
-
-            html.Div(
-
+        # Check data for other routes
+        if not df_json or not profiles_dict:
+            return html.Div(
                 [
-
-                    # Left
-                    html.Div(
-
-                        [
-
-                            html.Img(
-                                src="/assets/onex_software_logo.png",
-                                style={
-                                    "height": "48px",
-                                    "marginRight": "15px"
-                                }
-                            ),
-
-                            html.Div(
-
-                                [
-
-                                    html.Div(
-
-                                        "Onex AI Data Insight Platform",
-
-                                        style={
-                                            "fontWeight": "700",
-                                            "fontSize": "22px",
-                                            "color": "#111827"
-                                        }
-
-                                    ),
-
-                                    html.Div(
-
-                                        "Administration",
-
-                                        style={
-                                            "fontSize": "13px",
-                                            "color": LIGHT
-                                        }
-
-                                    )
-
-                                ]
-
-                            )
-
-                        ],
-
-                        style={
-                            "display": "flex",
-                            "alignItems": "center"
-                        }
-
-                    ),
-
-                    # Right
-                    html.Div(
-
-                        [
-
-                            html.Div(
-
-                                [
-
-                                    html.Div(
-
-                                        username,
-
-                                        style={
-                                            "fontWeight": "600"
-                                        }
-
-                                    ),
-
-                                    html.Div(
-
-                                        "Administrator",
-
-                                        style={
-                                            "fontSize": "13px",
-                                            "color": LIGHT
-                                        }
-
-                                    )
-
-                                ],
-
-                                style={
-                                    "textAlign": "right",
-                                    "marginRight": "20px"
-                                }
-
-                            ),
-
-                            dbc.Button(
-
-                                "Logout",
-
-                                id="btn-admin-logout",
-
-                                color="danger",
-
-                                size="sm"
-
-                            )
-
-                        ],
-
-                        style={
-                            "display": "flex",
-                            "alignItems": "center"
-                        }
-
-                    )
-
+                    html.H3("Error: Data not initialized"),
+                    html.P("Please refresh the page."),
                 ],
-
-                style={
-
-                    "display": "flex",
-                    "justifyContent": "space-between",
-                    "alignItems": "center",
-                    "padding": "18px 40px",
-                    "background": "white",
-                    "borderBottom": f"1px solid {BORDER}"
-
-                }
-
-            ),
-
-            # ==========================================================
-            # NAVIGATION
-            # ==========================================================
-
-            html.Div(
-
-                [
-
-                    nav_item(
-                        "Home",
-                        "/admin",
-                        active == "home"
-                    ),
-
-                    nav_item(
-                        "Users",
-                        "/users",
-                        active == "users"
-                    ),
-
-                    nav_item(
-                        "Companies",
-                        "/companies",
-                        active == "companies"
-                    ),
-
-                    nav_item(
-                        "Mapping",
-                        "/mapping",
-                        active == "mapping"
-                    ),
-
-                    nav_item(
-                        "Portal",
-                        "/portal",
-                        active == "portal"
-                    )
-
-                ],
-
-                style={
-
-                    "display": "flex",
-                    "alignItems": "center",
-                    "padding": "0 40px",
-                    "background": "white",
-                    "borderBottom": f"1px solid {BORDER}"
-
-                }
-
-            ),
-
-            # ==========================================================
-            # PAGE BODY
-            # ==========================================================
-
-            html.Div(
-
-                [
-
-                    html.H2(
-
-                        title,
-
-                        style={
-                            "fontWeight": "700",
-                            "marginBottom": "8px",
-                            "color": "#111827"
-                        }
-
-                    ),
-
-                    html.Hr(),
-
-                    body
-
-                ],
-
-                style={
-
-                    "padding": "35px 45px",
-                    "background": BG,
-                    "minHeight": "calc(100vh - 130px)"
-
-                }
-
+                style={'padding': '20px', 'textAlign': 'center', 'color': 'red'}
             )
 
-        ]
+        current_df = get_cached_dataframe()
+        if current_df is None:
+            return html.Div(
+                [html.H3("Error: Data not loaded"), html.P("Check server logs.")],
+                style={'padding': '20px', 'color': 'red'}
+            )
 
-    )
+        current_profiles = load_cached_profiles()
+        if not current_profiles:
+            return html.Div(
+                [html.H3("Error: Profiles not available"), html.P("Check server logs.")],
+                style={'padding': '20px', 'color': 'red'}
+            )
+
+        confirmed_dtypes = session_data.get('confirmed_dtypes', {})
+        if not confirmed_dtypes:
+            confirmed_dtypes = {}
+            for col, profile_data in current_profiles.items():
+                confirmed_dtypes[col] = profile_data.get('dtype', 'categorical')
+
+        # Route to pages
+        if pathname == '/upload':
+            if role_id != 2:
+                return html.H3("Access Denied")
+            return page_upload.generate_upload_page()
+
+        elif pathname == '/config':
+            if role_id != 2:
+                return html.H3("Access Denied")
+            return page_config.generate_config_page(current_df, current_profiles, confirmed_dtypes)
+
+        elif pathname == '/dashboard':
+            if role_id != 2:
+                return html.H3("Access Denied")
+            # Give priority to loaded dashboard values
+            kpi_selections = session_data.get('kpi_selections', store_kpi_data or [])
+            filter_selections = session_data.get('filter_selections', store_filter_data or [])
+
+            print("=" *80)
+            print("DASHBOARD PAGE")
+            print("AI_SUGGESTIONS TYPE:", type(ai_suggestions))
+            print("AI_SUGGESTIONS:", ai_suggestions)
+            print("=" * 80)
+            
+
+            # llm_analysis = None
+            # if config_dict:
+            #     llm_analysis = AnalysisFormatter.format_analysis(
+            #         type('DashboardConfig', (), config_dict)() if isinstance(config_dict, dict) else config_dict
+            #     )
+            
+            effective_config = ai_suggestions or config_dict
+            
+            llm_analysis = None
+            if effective_config:
+                llm_analysis = AnalysisFormatter.format_analysis(
+                    type('DashboardConfig', (), effective_config)() if isinstance(effective_config, dict) else effective_config
+                )
+
+            result = page_dashboard.generate_dashboard_page(
+                current_df,
+                kpi_selections=kpi_selections,
+                filter_selections=filter_selections,
+                confirmed_dtypes=confirmed_dtypes,
+                llm_analysis=llm_analysis
+            )
+            return result
+        
+        elif pathname == '/data-review':
+            if role_id != 2:
+                return html.H3("Access Denied")
+            return page_data_review.generate_data_review_page(current_df, current_profiles)
+        
+        elif pathname == "/admin":
+            if role_id != 1:
+                return html.H3("Access Denied")
+            return admin_dashboard_layout()
+        
+        elif pathname == '/users':
+            if role_id != 1:
+                return html.H3("Access Denied")
+            from pages import page_users
+            return page_users.generate_users_page()
+
+        elif pathname == '/companies':
+            if role_id != 1:
+                return html.H3("Access Denied")
+            from pages import page_companies
+            return page_companies.generate_companies_page()
+        
+        elif pathname == '/mapping':
+            if role_id != 1:
+                return html.H3("Access Denied")
+
+            from pages import page_user_company
+            return page_user_company.generate_mapping_page()
+
+        else:
+            return page_user_login.generate_user_login_page()
