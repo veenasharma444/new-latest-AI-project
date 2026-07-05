@@ -1,49 +1,37 @@
-def load_users(pathname):
+from dash import html, dcc
+import dash_bootstrap_components as dbc
 
-        if pathname != "/users":
-            raise PreventUpdate
-        
-        users = get_all_users()
-        children = []
-        for user in users:
+def generate_mapping_page():
 
-            children.append(
-                dbc.Row(
-                    [
-                        dbc.Col(
-                            html.Button(
-                                "✏️",
-                                id={
-                                    "type": "edit-user",
-                                    "index": user["user_id"]
-                                },
-                                className="btn btn-link"
-                            ),
-                            width=1
-                        ),
+    return html.Div([
 
-                        dbc.Col(user["username"], width=4),
-                        dbc.Col(
-                            dbc.Badge(
-                                user["role"],
-                                color="primary"
-                            ),
-                            width=2
-                        ),
-                        dbc.Col(
-                            dbc.Switch(
-                                id={
-                                    "type": "toggle-user",
-                                    "index": user["user_id"]
-                                },
+        html.H2("User Company Mapping", style={'marginBottom': '20px'}),
 
-                                value=user["is_active"]
-                            ),
-                            width=2
-                        )
-                    ],
+        dbc.Card([
+            dbc.CardBody([
 
-                    className="align-items-center border-bottom py-2"
-                )
-            )
-        return children
+                html.Label("Select User"),
+                dcc.Dropdown(id='mapping-user-dropdown'),
+
+                html.Br(),
+
+                html.Label("Select Companies"),
+                dcc.Dropdown(id='mapping-company-dropdown', multi=True),
+
+                html.Br(),
+
+                dbc.Button("Assign Companies", id='btn-assign-company', color='primary'),
+
+                html.Div(id='mapping-msg', style={'marginTop': '10px'})
+
+            ])
+        ], className="mb-4"),
+
+        dbc.Card([
+            dbc.CardBody([
+                html.H5("Mappings"),
+                html.Div(id='mapping-table')
+            ])
+        ])
+
+    ], style={'padding': '20px'})
