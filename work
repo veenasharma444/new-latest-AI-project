@@ -1,1 +1,261 @@
+from dash import html, dcc
+import dash_bootstrap_components as dbc
 
+
+PRIMARY = "#2563EB"
+TEXT = "#374151"
+LIGHT = "#6B7280"
+BORDER = "#E5E7EB"
+BG = "#F8FAFC"
+
+
+def nav_item(name, href, active=False):
+    return dcc.Link(
+        name,
+        href=href,
+        style={
+            "textDecoration": "none",
+            "padding": "22px 8px",
+            "marginLeft": "28px",
+            "fontWeight": "600",
+            "fontSize": "15px",
+            "color": PRIMARY if active else TEXT,
+            "borderBottom": f"3px solid {PRIMARY}" if active else "3px solid transparent",
+            "transition": "0.2s"
+        }
+    )
+
+
+def admin_layout(title, body, active="home", username="Administrator"):
+
+    return html.Div(
+
+        [
+
+            # ==========================================================
+            # TOP HEADER
+            # ==========================================================
+
+            html.Div(
+
+                [
+
+                    # Left
+                    html.Div(
+
+                        [
+
+                            html.Img(
+                                src="/assets/onex_software_logo.png",
+                                style={
+                                    "height": "48px",
+                                    "marginRight": "15px"
+                                }
+                            ),
+
+                            html.Div(
+
+                                [
+
+                                    html.Div(
+
+                                        "Onex AI Data Insight Platform",
+
+                                        style={
+                                            "fontWeight": "700",
+                                            "fontSize": "22px",
+                                            "color": "#111827"
+                                        }
+
+                                    ),
+
+                                    html.Div(
+
+                                        "Administration",
+
+                                        style={
+                                            "fontSize": "13px",
+                                            "color": LIGHT
+                                        }
+
+                                    )
+
+                                ]
+
+                            )
+
+                        ],
+
+                        style={
+                            "display": "flex",
+                            "alignItems": "center"
+                        }
+
+                    ),
+
+                    # Right
+                    html.Div(
+
+                        [
+
+                            html.Div(
+
+                                [
+
+                                    html.Div(
+
+                                        username,
+
+                                        style={
+                                            "fontWeight": "600"
+                                        }
+
+                                    ),
+
+                                    html.Div(
+
+                                        "Administrator",
+
+                                        style={
+                                            "fontSize": "13px",
+                                            "color": LIGHT
+                                        }
+
+                                    )
+
+                                ],
+
+                                style={
+                                    "textAlign": "right",
+                                    "marginRight": "20px"
+                                }
+
+                            ),
+
+                            dbc.Button(
+
+                                "Logout",
+
+                                id="btn-admin-logout",
+
+                                color="danger",
+
+                                size="sm"
+
+                            )
+
+                        ],
+
+                        style={
+                            "display": "flex",
+                            "alignItems": "center"
+                        }
+
+                    )
+
+                ],
+
+                style={
+
+                    "display": "flex",
+                    "justifyContent": "space-between",
+                    "alignItems": "center",
+                    "padding": "18px 40px",
+                    "background": "white",
+                    "borderBottom": f"1px solid {BORDER}"
+
+                }
+
+            ),
+
+            # ==========================================================
+            # NAVIGATION
+            # ==========================================================
+
+            html.Div(
+
+                [
+
+                    nav_item(
+                        "Home",
+                        "/admin",
+                        active == "home"
+                    ),
+
+                    nav_item(
+                        "Users",
+                        "/users",
+                        active == "users"
+                    ),
+
+                    nav_item(
+                        "Companies",
+                        "/companies",
+                        active == "companies"
+                    ),
+
+                    nav_item(
+                        "Mapping",
+                        "/mapping",
+                        active == "mapping"
+                    ),
+
+                    nav_item(
+                        "Portal",
+                        "/portal",
+                        active == "portal"
+                    )
+
+                ],
+
+                style={
+
+                    "display": "flex",
+                    "alignItems": "center",
+                    "padding": "0 40px",
+                    "background": "white",
+                    "borderBottom": f"1px solid {BORDER}"
+
+                }
+
+            ),
+
+            # ==========================================================
+            # PAGE BODY
+            # ==========================================================
+
+            html.Div(
+
+                [
+
+                    html.H2(
+
+                        title,
+
+                        style={
+                            "fontWeight": "700",
+                            "marginBottom": "8px",
+                            "color": "#111827"
+                        }
+
+                    ),
+
+                    html.Hr(),
+
+                    body
+
+                ],
+
+                style={
+
+                    "padding": "35px 45px",
+                    "background": BG,
+                    "minHeight": "calc(100vh - 130px)"
+
+                }
+
+            )
+
+        ]
+
+    )
