@@ -1,3 +1,17 @@
+@app.callback(
+    Output('page-content', 'children'),
+    Input('url', 'pathname'),
+    [State('store-global-dataframe', 'data'),
+    State('store-global-profiles', 'data'),
+    State('store-objective', 'data'),
+    State('store-initial-config', 'data'),
+    State('store-ai-suggestions', 'data'),
+    State('session-state', 'data'),
+    State('store-kpi-selections', 'data'),
+    State('store-filter-selections', 'data')],
+    prevent_initial_call=False
+)
+
 def display_page(pathname, df_json, profiles_dict,  objective_data, config_dict, ai_suggestions, session_data, store_kpi_data, store_filter_data):
     """Route to appropriate page based on URL and authentication"""
     if not pathname or pathname == '':
