@@ -1,1 +1,142 @@
 
+from dash import html, dcc
+import dash_bootstrap_components as dbc
+from components.admin_layout import admin_layout
+
+
+def generate_mapping_page():
+
+    body = html.Div(
+
+        [
+
+            html.Div(
+                id="mapping-msg",
+                className="mb-3"
+            ),
+
+            dbc.Card(
+
+                dbc.CardBody(
+
+                    [
+
+                        html.H5(
+                            "Assign Companies",
+                            className="fw-bold mb-4"
+                        ),
+
+                        dbc.Row(
+
+                            [
+
+                                dbc.Col(
+
+                                    [
+
+                                        dbc.Label(
+                                            "User",
+                                            className="fw-semibold"
+                                        ),
+
+                                        dcc.Dropdown(
+                                            id="mapping-user-dropdown",
+                                            placeholder="Select User"
+                                        )
+
+                                    ],
+
+                                    md=6
+
+                                ),
+
+                                dbc.Col(
+
+                                    [
+
+                                        dbc.Label(
+                                            "Companies",
+                                            className="fw-semibold"
+                                        ),
+
+                                        dcc.Dropdown(
+
+                                            id="mapping-company-dropdown",
+
+                                            multi=True,
+
+                                            placeholder="Select Companies"
+
+                                        )
+
+                                    ],
+
+                                    md=6
+
+                                )
+
+                            ],
+
+                            className="g-3"
+
+                        ),
+
+                        html.Br(),
+
+                        dbc.Button(
+
+                            "Assign Companies",
+
+                            id="btn-assign-company",
+
+                            color="primary"
+
+                        )
+
+                    ]
+
+                ),
+
+                className="shadow-sm border-0 rounded-4 mb-4"
+
+            ),
+
+            dbc.Card(
+
+                dbc.CardBody(
+
+                    [
+
+                        html.H5(
+
+                            "Mapped Companies",
+
+                            className="fw-bold mb-3"
+
+                        ),
+
+                        html.Div(
+                            id="mapping-table"
+                        )
+
+                    ]
+
+                ),
+
+                className="shadow-sm border-0 rounded-4"
+
+            )
+
+        ]
+
+    )
+
+    return admin_layout(
+
+        title="Company Mapping",
+
+        body=body,
+
+        active="mapping"
+
+    )
