@@ -1,1 +1,53 @@
+@app.callback(
+    Output("store-kpi-selections-dashboard", "data", allow_duplicate=True),
+    Output("store-filter-selections-dashboard", "data", allow_duplicate=True),
+    Output("store-confirmed-dtypes-dashboard", "data", allow_duplicate=True),
+    Output("store-ai-suggestions", "data", allow_duplicate=True),
+    Input("url", "pathname"),
+    State("session-state", "data"),
+    prevent_initial_call=True
+)
+def auto_load_company_dashboard(pathname, session_data):
 
+    from dash.exceptions import PreventUpdate
+    from core.db_connector import get_session
+    from core.app_db import SavedDashboard
+
+    if pathname != "/dashboard":
+        raise PreventUpdate
+
+    session_data = session_data or {}
+    company_id = session_data.get("company_id")
+
+    # Only auto-load when admin comes from Portal
+    if not company_id:
+        raise PreventUpdate
+
+    session = get_session()
+
+    try:
+
+        dashboard = (
+            session.query(SavedDashboard)
+            .filter(
+                SavedDashboard.company_id == company_id
+            )
+            .order_by(SavedDashboard.created_at.desc())
+            .first()
+        )
+
+        if dashboard is None:
+            print(f"[PORTAL] No saved dashboard found for company {company_id}")
+            return [], [], {}, {}
+
+        print(f"[PORTAL] Auto loading dashboard: {dashboard.dashboard_name}")
+
+        return (
+            dashboard.kpi_selections or [],
+            dashboard.filter_selections or [],
+            dashboard.confirmed_dtypes or {},
+            dashboard.ai_suggestions or {}
+        )
+
+    finally:
+        session.close()
