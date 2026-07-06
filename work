@@ -1,144 +1,100 @@
-from dash import html, dcc
+from dash import callback, Input, Output, State, html
 import dash_bootstrap_components as dbc
-from components.admin_layout import admin_layout
+from core.db_connector import get_session
+from core.app_db import User, Company, UserCompany
 
 
-def generate_mapping_page():
+@callback(
+    Output('mapping-user-dropdown', 'options'),
+    Input('mapping-user-dropdown', 'id')
+)
+def load_users(_):
+    session = get_session()
+    users = session.query(User).all()
+    session.close()
 
-    body = html.Div(
+    return [{"label": u.username, "value": u.user_id} for u in users]
 
-        [
+@callback(
+    Output('mapping-company-dropdown', 'options'),
+    Input('mapping-company-dropdown', 'id')
+)
+def load_companies(_):
+    session = get_session()
+    companies = session.query(Company).all()
+    session.close()
 
-            html.Div(
-                id="mapping-msg",
-                className="mb-3"
-            ),
-
-            dbc.Card(
-
-                dbc.CardBody(
-
-                    [
-
-                        html.H5(
-                            "Assign Companies",
-                            className="fw-bold mb-4"
-                        ),
-
-                        dbc.Row(
-
-                            [
-
-                                dbc.Col(
-
-                                    [
-
-                                        dbc.Label(
-                                            "User",
-                                            className="fw-semibold"
-                                        ),
-
-                                        dcc.Dropdown(
-                                            id="mapping-user-dropdown",
-                                            placeholder="Select User"
-                                        )
-
-                                    ],
-
-                                    md=6
-
-                                ),
-
-                                dbc.Col(
-
-                                    [
-
-                                        dbc.Label(
-                                            "Companies",
-                                            className="fw-semibold"
-                                        ),
-
-                                        dcc.Dropdown(
-
-                                            id="mapping-company-dropdown",
-
-                                            multi=True,
-
-                                            placeholder="Select Companies"
-
-                                        )
-
-                                    ],
-
-                                    md=6
-
-                                )
-
-                            ],
-
-                            className="g-3"
-
-                        ),
-
-                        html.Br(),
-
-                        dbc.Button(
-
-                            "Assign Companies",
-
-                            id="btn-assign-company",
-
-                            color="primary"
-
-                        )
-
-                    ]
-
-                ),
-
-                className="shadow-sm border-0 rounded-4 mb-4"
-
-            ),
-
-            dbc.Card(
-
-                dbc.CardBody(
-
-                    [
-
-                        html.H5(
-
-                            "Mapped Companies",
-
-                            className="fw-bold mb-3"
-
-                        ),
-
-                        html.Div(
-                            id="mapping-table"
-                        )
-
-                    ]
-
-                ),
-
-                className="shadow-sm border-0 rounded-4"
-
-            )
-
-        ]
-
-    )
-
-    return admin_layout(
-
-        title="Company Mapping",
-
-        body=body,
-
-        active="mapping"
-
-    )
+    return [{"label": c.company_name, "value": c.company_id} for c in companies]
 
 
+@callback(
+    Output('mapping-msg', 'children'),
+    Input('btn-assign-company', 'n_clicks'),
+    State('mapping-user-dropdown', 'value'),
+    State('mapping-company-dropdown', 'value'),
+    prevent_initial_call=True
+)
+def assign_companies(n_clicks, user_id, company_ids):
+
+    session = get_session()
+
+    try:
+        if not user_id or not company_ids:
+            return dbc.Alert("Select user and company", color="warning")
+
+        for cid in company_ids:
+            existing = session.query(UserCompany).filter_by(
+                user_id=user_id,
+                company_id=cid
+            ).first()
+
+            if not existing:
+                mapping = UserCompany(user_id=user_id, company_id=cid)
+                session.add(mapping)
+
+        session.commit()
+
+        return dbc.Alert(" Mapping saved", color="success")
+
+    except Exception as e:
+        session.rollback()
+        return dbc.Alert(f" {str(e)}", color="danger")
+
+    finally:
+        session.close()
+        
+        
+        
+@callback(
+    Output('mapping-table', 'children'),
+    Input('btn-assign-company', 'n_clicks')
+)
+
+def load_mapping(_):
+
+    session = get_session()
+
+    # ✅ JOIN tables to get names instead of IDs
+    data = session.query(UserCompany, User, Company) \
+        .join(User, User.user_id == UserCompany.user_id) \
+        .join(Company, Company.company_id == UserCompany.company_id) \
+        .all()
+
+    rows = []
+
+    for m, u, c in data:
+        rows.append(html.Tr([
+            html.Td(u.username),          # ✅ show username
+            html.Td(c.company_name)       # ✅ show company name
+        ]))
+
+    session.close()
+
+    return dbc.Table([
+    html.Thead(html.Tr([
+        html.Th("User"),
+        html.Th("Company")
+    ])),
+    html.Tbody(rows)
+], bordered=True, striped=True, hover=True)
 
