@@ -1,1 +1,154 @@
+from dash import html, dcc
+import dash_bootstrap_components as dbc
+from components.admin_layout import admin_layout
 
+
+CARD_STYLE = {
+    "backgroundColor": "white",
+    "border": "1px solid #E5E7EB",
+    "borderRadius": "16px",
+    "padding": "32px",
+    "height": "210px",
+    "cursor": "pointer",
+    "boxShadow": "0 3px 10px rgba(0,0,0,.08)",
+    "transition": "all .2s ease"
+}
+
+
+def admin_card(icon, title, description, href):
+
+    return dbc.Col(
+
+        dcc.Link(
+
+            dbc.Card(
+
+                dbc.CardBody(
+
+                    [
+
+                        html.Div(
+
+                            icon,
+
+                            style={
+                                "fontSize": "46px",
+                                "marginBottom": "18px"
+                            }
+
+                        ),
+
+                        html.H4(
+
+                            title,
+
+                            style={
+                                "fontWeight": "700",
+                                "marginBottom": "10px"
+                            }
+
+                        ),
+
+                        html.P(
+
+                            description,
+
+                            style={
+                                "color": "#6B7280",
+                                "fontSize": "15px"
+                            }
+
+                        )
+
+                    ]
+
+                ),
+
+                style=CARD_STYLE
+
+            ),
+
+            href=href,
+
+            style={
+                "textDecoration": "none",
+                "color": "inherit"
+            }
+
+        ),
+
+        lg=6,
+        xl=3,
+        md=6,
+        sm=12,
+
+        className="mb-4"
+
+    )
+
+
+def layout():
+
+    body = [
+
+        html.P(
+
+            "Welcome to the administration console. Select a module below.",
+
+            style={
+                "color": "#6B7280",
+                "fontSize": "16px",
+                "marginBottom": "35px"
+            }
+
+        ),
+
+        dbc.Row(
+
+            [
+
+                admin_card(
+                    "👤",
+                    "Users",
+                    "Create and manage users.",
+                    "/users"
+                ),
+
+                admin_card(
+                    "🏢",
+                    "Companies",
+                    "Create and manage companies.",
+                    "/companies"
+                ),
+
+                admin_card(
+                    "🔗",
+                    "Mapping",
+                    "Assign companies to users.",
+                    "/mapping"
+                ),
+
+                admin_card(
+                    "🌐",
+                    "Portal",
+                    "Open company workspace.",
+                    "/portal"
+                )
+
+            ],
+
+            className="g-4"
+
+        )
+
+    ]
+
+    return admin_layout(
+
+        title="Admin Dashboard",
+
+        body=body,
+
+        active="home"
+
+    )
