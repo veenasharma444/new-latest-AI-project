@@ -1,1 +1,12 @@
 
+# Admin coming from Portal
+if role_id == 1 and session_data.get("company_id"):
+    kpi_selections = dashboard_kpi_data or []
+    filter_selections = dashboard_filter_data or []
+    confirmed_dtypes = dashboard_dtype_data or {}
+
+# Normal user flow
+else:
+    kpi_selections = session_data.get("kpi_selections", store_kpi_data or [])
+    filter_selections = session_data.get("filter_selections", store_filter_data or [])
+    confirmed_dtypes = session_data.get("confirmed_dtypes", {})
