@@ -1,1 +1,94 @@
 
+@callback(
+    Output("company-table", "children"),
+    Input("company-table", "id")
+)
+def load_companies(_):
+
+    session = get_session()
+
+    try:
+
+        companies = session.query(Company).order_by(Company.company_name).all()
+
+        rows = []
+
+        for i, c in enumerate(companies, start=1):
+
+            rows.append(
+
+                html.Tr(
+
+                    [
+
+                        html.Td(i),
+
+                        html.Td(c.company_name),
+
+                        html.Td(c.company_code),
+
+                        html.Td(
+
+                            dbc.Badge(
+
+                                "Active" if c.is_active else "Inactive",
+
+                                color="success" if c.is_active else "secondary",
+
+                                pill=True,
+
+                                className="px-3 py-2"
+
+                            )
+
+                        )
+
+                    ]
+
+                )
+
+            )
+
+        return dbc.Table(
+
+            [
+
+                html.Thead(
+
+                    html.Tr(
+
+                        [
+
+                            html.Th("#"),
+
+                            html.Th("Company Name"),
+
+                            html.Th("Company Code"),
+
+                            html.Th("Status")
+
+                        ]
+
+                    )
+
+                ),
+
+                html.Tbody(rows)
+
+            ],
+
+            bordered=False,
+
+            hover=True,
+
+            responsive=True,
+
+            striped=False,
+
+            className="align-middle"
+
+        )
+
+    finally:
+
+        session.close()
