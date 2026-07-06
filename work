@@ -1,198 +1,215 @@
 from dash import html, dcc
 import dash_bootstrap_components as dbc
+from components.admin_layout import admin_layout
 
-# ==========================================================
-# THEME
-# ==========================================================
 
-PRIMARY = "#2563EB"
-TEXT = "#111827"
-TEXT_LIGHT = "#6B7280"
-BORDER = "#E5E7EB"
-BACKGROUND = "#F8FAFC"
-WHITE = "#FFFFFF"
+def generate_users_page():
 
-# ==========================================================
-# NAVIGATION ITEM
-# ==========================================================
+    body = html.Div(
 
-def nav_item(title, href, active=False):
-    return dcc.Link(
-        title,
-        href=href,
-        style={
-            "textDecoration": "none",
-            "padding": "18px 6px",
-            "marginRight": "34px",
-            "fontSize": "15px",
-            "fontWeight": "600",
-            "color": PRIMARY if active else TEXT,
-            "borderBottom": f"3px solid {PRIMARY}" if active else "3px solid transparent",
-            "transition": "all .2s ease",
-        },
+        [
+
+            dcc.Store(id="selected-user-id"),
+
+            html.Div(
+                id="create-user-msg",
+                className="mb-3"
+            ),
+
+            dbc.Card(
+
+                dbc.CardBody(
+
+                    [
+
+                        html.H5(
+                            "Create User",
+                            className="fw-bold mb-4"
+                        ),
+
+                        dbc.Row(
+
+                            [
+
+                                dbc.Col(
+
+                                    [
+
+                                        dbc.Label(
+                                            "Username",
+                                            className="fw-semibold"
+                                        ),
+
+                                        dbc.Input(
+
+                                            id="user-username",
+
+                                            placeholder="Enter username",
+
+                                            type="text"
+
+                                        )
+
+                                    ],
+
+                                    md=3
+
+                                ),
+
+                                dbc.Col(
+
+                                    [
+
+                                        dbc.Label(
+                                            "Password",
+                                            className="fw-semibold"
+                                        ),
+
+                                        dbc.Input(
+
+                                            id="user-password",
+
+                                            placeholder="Enter password",
+
+                                            type="password"
+
+                                        )
+
+                                    ],
+
+                                    md=3
+
+                                ),
+
+                                dbc.Col(
+
+                                    [
+
+                                        dbc.Label(
+                                            "Role",
+                                            className="fw-semibold"
+                                        ),
+
+                                        dbc.Select(
+
+                                            id="user-role",
+
+                                            options=[
+                                                {
+                                                    "label": "Admin",
+                                                    "value": 1
+                                                },
+                                                {
+                                                    "label": "User",
+                                                    "value": 2
+                                                }
+                                            ],
+
+                                            value=2
+
+                                        )
+
+                                    ],
+
+                                    md=3
+
+                                ),
+
+                                dbc.Col(
+
+                                    dbc.Button(
+
+                                        "Create User",
+
+                                        id="btn-save-user",
+
+                                        color="primary",
+
+                                        className="w-100"
+
+                                    ),
+
+                                    md=3,
+
+                                    className="d-flex align-items-end"
+
+                                )
+
+                            ],
+
+                            className="g-3"
+
+                        )
+
+                    ]
+
+                ),
+
+                className="shadow-sm border-0 rounded-4 mb-4"
+
+            ),
+
+            dbc.Card(
+
+                dbc.CardBody(
+
+                    [
+
+                        html.H5(
+
+                            "User List",
+
+                            className="fw-bold mb-3"
+
+                        ),
+
+                        html.Table(
+
+                            [
+
+                                html.Thead(
+
+                                    html.Tr(
+
+                                        [
+
+                                            html.Th("Action"),
+
+                                            html.Th("Username"),
+
+                                            html.Th("Role"),
+
+                                            html.Th("Toggle Status")
+
+                                        ]
+
+                                    )
+
+                                ),
+
+                                html.Tbody(
+
+                                    id="users-list"
+
+                                )
+
+                            ],
+
+                            className="table"
+
+                        )
+
+                    ]
+
+                ),
+
+                className="shadow-sm border-0 rounded-4"
+            )
+        ]
     )
 
-# ==========================================================
-# HEADER
-# ==========================================================
-
-def header(username="Administrator", role="Admin"):
-    return html.Div(
-        [
-            html.Div(
-                [
-                    html.Img(
-                        src="/assets/onex_software_logo.png",
-                        style={
-                            "height": "58px",
-                            "marginRight": "18px",
-                        },
-                    ),
-                    html.Div(
-                        [
-                            html.Div(
-                                "Onex AI Data Insight Platform",
-                                style={
-                                    "fontSize": "24px",
-                                    "fontWeight": "700",
-                                    "color": TEXT,
-                                },
-                            ),
-                            html.Div(
-                                "Admin Console",
-                                style={
-                                    "fontSize": "14px",
-                                    "color": TEXT_LIGHT,
-                                },
-                            ),
-                        ]
-                    ),
-                ],
-                style={
-                    "display": "flex",
-                    "alignItems": "center",
-                },
-            ),
-            html.Div(
-                [
-                    html.Div(
-                        [
-                            html.Div(
-                                username,
-                                style={
-                                    "fontWeight": "700",
-                                    "fontSize": "15px",
-                                },
-                            ),
-                            html.Div(
-                                role,
-                                style={
-                                    "fontSize": "13px",
-                                    "color": TEXT_LIGHT,
-                                },
-                            ),
-                        ],
-                        style={
-                            "textAlign": "right",
-                            "marginRight": "18px",
-                        },
-                    ),
-                    dbc.Button(
-                        "Logout",
-                        id="btn-admin-logout",
-                        outline=True,
-                        color="danger",
-                        size="sm",
-                        style={
-                            "borderRadius": "8px",
-                            "padding": "7px 18px",
-                        },
-                    ),
-                ],
-                style={
-                    "display": "flex",
-                    "alignItems": "center",
-                },
-            ),
-        ],
-        style={
-            "display": "flex",
-            "justifyContent": "space-between",
-            "alignItems": "center",
-            "padding": "18px 40px",
-            "background": WHITE,
-            "borderBottom": f"1px solid {BORDER}",
-        },
-    )
-
-# ==========================================================
-# ADMIN LAYOUT
-# ==========================================================
-
-def admin_layout(
-    title,
-    body,
-    active="home",
-    username="Administrator",
-    role="Admin",
-):
-
-    return html.Div(
-        [
-            header(
-                username=username,
-                role=role,
-            ),
-
-            html.Div(
-                [
-                    nav_item("Home", "/admin", active == "home"),
-                    nav_item("Users", "/users", active == "users"),
-                    nav_item("Companies", "/companies", active == "companies"),
-                    nav_item("Mapping", "/mapping", active == "mapping"),
-                    nav_item("Portal", "/portal", active == "portal"),
-                ],
-                style={
-                    "display": "flex",
-                    "alignItems": "center",
-                    "padding": "0px 42px",
-                    "height": "58px",
-                    "backgroundColor": WHITE,
-                    "borderBottom": f"1px solid {BORDER}",
-                },
-            ),
-
-            html.Div(
-                [
-                    html.H2(
-                        title,
-                        style={
-                            "fontSize": "32px",
-                            "fontWeight": "700",
-                            "marginBottom": "8px",
-                            "color": TEXT,
-                        },
-                    ),
-
-                    html.P(
-                        "Manage your administration tasks from one place.",
-                        style={
-                            "color": TEXT_LIGHT,
-                            "marginBottom": "28px",
-                        },
-                    ),
-
-                    # FIX: expand body list instead of nesting it
-                    *body,
-                ],
-                style={
-                    "padding": "40px",
-                    "backgroundColor": BACKGROUND,
-                    "minHeight": "calc(100vh - 132px)",
-                },
-            ),
-        ],
-        style={
-            "backgroundColor": BACKGROUND,
-        },
+    return admin_layout(
+        title="User Master",
+        body=body,
+        active="users"
     )
