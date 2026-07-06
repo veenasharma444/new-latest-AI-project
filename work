@@ -3,16 +3,14 @@ import dash_bootstrap_components as dbc
 from components.admin_layout import admin_layout
 
 
-def generate_users_page():
+def generate_companies_page():
 
     body = html.Div(
 
         [
 
-            dcc.Store(id="selected-user-id"),
-
             html.Div(
-                id="create-user-msg",
+                id="company-msg",
                 className="mb-3"
             ),
 
@@ -23,7 +21,7 @@ def generate_users_page():
                     [
 
                         html.H5(
-                            "Create User",
+                            "Create Company",
                             className="fw-bold mb-4"
                         ),
 
@@ -36,23 +34,18 @@ def generate_users_page():
                                     [
 
                                         dbc.Label(
-                                            "Username",
+                                            "Company Name",
                                             className="fw-semibold"
                                         ),
 
                                         dbc.Input(
-
-                                            id="user-username",
-
-                                            placeholder="Enter username",
-
-                                            type="text"
-
+                                            id="company-name",
+                                            placeholder="Enter company name"
                                         )
 
                                     ],
 
-                                    md=3
+                                    md=4
 
                                 ),
 
@@ -61,23 +54,18 @@ def generate_users_page():
                                     [
 
                                         dbc.Label(
-                                            "Password",
+                                            "Company Code",
                                             className="fw-semibold"
                                         ),
 
                                         dbc.Input(
-
-                                            id="user-password",
-
-                                            placeholder="Enter password",
-
-                                            type="password"
-
+                                            id="company-code",
+                                            placeholder="Enter company code"
                                         )
 
                                     ],
 
-                                    md=3
+                                    md=4
 
                                 ),
 
@@ -86,58 +74,52 @@ def generate_users_page():
                                     [
 
                                         dbc.Label(
-                                            "Role",
+                                            "Status",
                                             className="fw-semibold"
                                         ),
 
-                                        dbc.Select(
+                                        dcc.Dropdown(
 
-                                            id="user-role",
+                                            id="company-status",
 
                                             options=[
                                                 {
-                                                    "label": "Admin",
-                                                    "value": 1
+                                                    "label": "Active",
+                                                    "value": True
                                                 },
                                                 {
-                                                    "label": "User",
-                                                    "value": 2
+                                                    "label": "Inactive",
+                                                    "value": False
                                                 }
                                             ],
 
-                                            value=2
+                                            value=True,
+
+                                            clearable=False
 
                                         )
 
                                     ],
 
-                                    md=3
-
-                                ),
-
-                                dbc.Col(
-
-                                    dbc.Button(
-
-                                        "Create User",
-
-                                        id="btn-save-user",
-
-                                        color="primary",
-
-                                        className="w-100"
-
-                                    ),
-
-                                    md=3,
-
-                                    className="d-flex align-items-end"
+                                    md=4
 
                                 )
 
                             ],
 
                             className="g-3"
+
+                        ),
+
+                        html.Br(),
+
+                        dbc.Button(
+
+                            "Create Company",
+
+                            id="btn-create-company",
+
+                            color="primary"
 
                         )
 
@@ -157,46 +139,14 @@ def generate_users_page():
 
                         html.H5(
 
-                            "User List",
+                            "Company List",
 
                             className="fw-bold mb-3"
 
                         ),
 
-                        html.Table(
-
-                            [
-
-                                html.Thead(
-
-                                    html.Tr(
-
-                                        [
-
-                                            html.Th("Action"),
-
-                                            html.Th("Username"),
-
-                                            html.Th("Role"),
-
-                                            html.Th("Toggle Status")
-
-                                        ]
-
-                                    )
-
-                                ),
-
-                                html.Tbody(
-
-                                    id="users-list"
-
-                                )
-
-                            ],
-
-                            className="table"
-
+                        html.Div(
+                            id="company-table"
                         )
 
                     ]
@@ -204,12 +154,20 @@ def generate_users_page():
                 ),
 
                 className="shadow-sm border-0 rounded-4"
+
             )
+
         ]
+
     )
 
     return admin_layout(
-        title="User Master",
+
+        title="Company Master",
+
         body=body,
-        active="users"
+
+        active="companies"
+
     )
+
