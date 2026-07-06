@@ -1,1 +1,211 @@
+from dash import html, dcc
+import dash_bootstrap_components as dbc
+from components.admin_layout import admin_layout
 
+
+def generate_companies_page():
+
+    body = html.Div(
+
+        [
+
+            html.Div(
+                id="company-msg",
+                className="mb-3"
+            ),
+
+            # =====================================================
+            # CREATE COMPANY
+            # =====================================================
+
+            dbc.Card(
+
+                dbc.CardBody(
+
+                    [
+
+                        html.H4(
+                            "Create Company",
+                            className="fw-bold mb-1"
+                        ),
+
+                        html.P(
+                            "Register a new company in the platform.",
+                            className="text-muted mb-4"
+                        ),
+
+                        dbc.Row(
+
+                            [
+
+                                dbc.Col(
+
+                                    [
+
+                                        dbc.Label(
+                                            "Company Name",
+                                            className="fw-semibold mb-2"
+                                        ),
+
+                                        dbc.Input(
+                                            id="company-name",
+                                            placeholder="Enter company name"
+                                        )
+
+                                    ],
+
+                                    lg=3
+
+                                ),
+
+                                dbc.Col(
+
+                                    [
+
+                                        dbc.Label(
+                                            "Company Code",
+                                            className="fw-semibold mb-2"
+                                        ),
+
+                                        dbc.Input(
+                                            id="company-code",
+                                            placeholder="Enter company code"
+                                        )
+
+                                    ],
+
+                                    lg=3
+
+                                ),
+
+                                dbc.Col(
+
+                                    [
+
+                                        dbc.Label(
+                                            "Status",
+                                            className="fw-semibold mb-2"
+                                        ),
+
+                                        dcc.Dropdown(
+
+                                            id="company-status",
+
+                                            options=[
+                                                {
+                                                    "label": "Active",
+                                                    "value": True
+                                                },
+                                                {
+                                                    "label": "Inactive",
+                                                    "value": False
+                                                }
+                                            ],
+
+                                            value=True,
+
+                                            clearable=False
+
+                                        )
+
+                                    ],
+
+                                    lg=3
+
+                                ),
+
+                                dbc.Col(
+
+                                    [
+
+                                        dbc.Label(" "),
+
+                                        dbc.Button(
+
+                                            "Create Company",
+
+                                            id="btn-create-company",
+
+                                            color="primary",
+
+                                            className="w-100"
+
+                                        )
+
+                                    ],
+
+                                    lg=3,
+
+                                    className="d-flex align-items-end"
+
+                                )
+
+                            ],
+
+                            className="g-3"
+
+                        )
+
+                    ]
+
+                ),
+
+                className="shadow-sm rounded-4 border-0 mb-4"
+
+            ),
+
+            # =====================================================
+            # COMPANY LIST
+            # =====================================================
+
+            dbc.Card(
+
+                dbc.CardBody(
+
+                    [
+
+                        html.H4(
+
+                            "Company List",
+
+                            className="fw-bold mb-1"
+
+                        ),
+
+                        html.P(
+
+                            "Companies available in the system.",
+
+                            className="text-muted mb-3"
+
+                        ),
+
+                        html.Div(
+
+                            id="company-table",
+
+                            className="table-responsive"
+
+                        )
+
+                    ]
+
+                ),
+
+                className="shadow-sm rounded-4 border-0"
+
+            )
+
+        ]
+
+    )
+
+    return admin_layout(
+
+        title="Company Master",
+
+        body=body,
+
+        active="companies"
+
+    )
