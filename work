@@ -1,211 +1,70 @@
-from dash import html, dcc
+from dash import Input, Output, State, callback, html
+from core.db_connector import get_session
+from core.app_db import Company
 import dash_bootstrap_components as dbc
-from components.admin_layout import admin_layout
 
 
-def generate_companies_page():
-
-    body = html.Div(
-
-        [
-
-            html.Div(
-                id="company-msg",
-                className="mb-3"
-            ),
-
-            # =====================================================
-            # CREATE COMPANY
-            # =====================================================
-
-            dbc.Card(
-
-                dbc.CardBody(
-
-                    [
-
-                        html.H4(
-                            "Create Company",
-                            className="fw-bold mb-1"
-                        ),
-
-                        html.P(
-                            "Register a new company in the platform.",
-                            className="text-muted mb-4"
-                        ),
-
-                        dbc.Row(
-
-                            [
-
-                                dbc.Col(
-
-                                    [
-
-                                        dbc.Label(
-                                            "Company Name",
-                                            className="fw-semibold mb-2"
-                                        ),
-
-                                        dbc.Input(
-                                            id="company-name",
-                                            placeholder="Enter company name"
-                                        )
-
-                                    ],
-
-                                    lg=3
-
-                                ),
-
-                                dbc.Col(
-
-                                    [
-
-                                        dbc.Label(
-                                            "Company Code",
-                                            className="fw-semibold mb-2"
-                                        ),
-
-                                        dbc.Input(
-                                            id="company-code",
-                                            placeholder="Enter company code"
-                                        )
-
-                                    ],
-
-                                    lg=3
-
-                                ),
-
-                                dbc.Col(
-
-                                    [
-
-                                        dbc.Label(
-                                            "Status",
-                                            className="fw-semibold mb-2"
-                                        ),
-
-                                        dcc.Dropdown(
-
-                                            id="company-status",
-
-                                            options=[
-                                                {
-                                                    "label": "Active",
-                                                    "value": True
-                                                },
-                                                {
-                                                    "label": "Inactive",
-                                                    "value": False
-                                                }
-                                            ],
-
-                                            value=True,
-
-                                            clearable=False
-
-                                        )
-
-                                    ],
-
-                                    lg=3
-
-                                ),
-
-                                dbc.Col(
-
-                                    [
-
-                                        dbc.Label(" "),
-
-                                        dbc.Button(
-
-                                            "Create Company",
-
-                                            id="btn-create-company",
-
-                                            color="primary",
-
-                                            className="w-100"
-
-                                        )
-
-                                    ],
-
-                                    lg=3,
-
-                                    className="d-flex align-items-end"
-
-                                )
-
-                            ],
-
-                            className="g-3"
-
-                        )
-
-                    ]
-
-                ),
-
-                className="shadow-sm rounded-4 border-0 mb-4"
-
-            ),
-
-            # =====================================================
-            # COMPANY LIST
-            # =====================================================
-
-            dbc.Card(
-
-                dbc.CardBody(
-
-                    [
-
-                        html.H4(
-
-                            "Company List",
-
-                            className="fw-bold mb-1"
-
-                        ),
-
-                        html.P(
-
-                            "Companies available in the system.",
-
-                            className="text-muted mb-3"
-
-                        ),
-
-                        html.Div(
-
-                            id="company-table",
-
-                            className="table-responsive"
-
-                        )
-
-                    ]
-
-                ),
-
-                className="shadow-sm rounded-4 border-0"
-
-            )
-
-        ]
-
-    )
-
-    return admin_layout(
-
-        title="Company Master",
-
-        body=body,
-
-        active="companies"
-
-    )
+@callback(
+    Output('company-msg', 'children'),
+    Input('btn-create-company', 'n_clicks'),
+    State('company-name', 'value'),
+    State('company-code', 'value'),
+    State('company-status', 'value'),
+    prevent_initial_call=True
+)
+def create_company(n_clicks, name, code, status):
+
+    session = get_session()
+
+    try:
+        if not name or not code:
+            return dbc.Alert("All fields required", color="warning")
+
+        company = Company(
+            company_name=name,
+            company_code=code,
+            is_active=status
+        )
+
+        session.add(company)
+        session.commit()
+
+        return dbc.Alert(" Company created", color="success")
+
+    except Exception as e:
+        session.rollback()
+        return dbc.Alert(f" {str(e)}", color="danger")
+
+    finally:
+        session.close()
+        
+
+        
+@callback(
+    Output('company-table', 'children'),
+    Input('company-table', 'id')
+)
+def load_companies(_):
+
+    session = get_session()
+    companies = session.query(Company).all()
+
+    rows = []
+
+    for c in companies:
+        rows.append(html.Tr([
+            html.Td(c.company_name),
+            html.Td(c.company_code),
+            html.Td("Active" if c.is_active else "Inactive")
+        ]))
+
+    session.close()
+
+    return html.Table([
+        html.Thead(html.Tr([
+            html.Th("Name"),
+            html.Th("Code"),
+            html.Th("Status")
+        ])),
+        html.Tbody(rows)
+    ])
