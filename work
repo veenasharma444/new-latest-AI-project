@@ -1,173 +1,183 @@
-from dash import html, dcc
-import dash_bootstrap_components as dbc
-from components.admin_layout import admin_layout
+@app.callback(
+    Output('page-content', 'children'),
+    Input('url', 'pathname'),
+    [State('store-global-dataframe', 'data'),
+    State('store-global-profiles', 'data'),
+    State('store-objective', 'data'),
+    State('store-initial-config', 'data'),
+    State('store-ai-suggestions', 'data'),
+    State('session-state', 'data'),
+    State('store-kpi-selections', 'data'),
+    State('store-filter-selections', 'data')],
+    prevent_initial_call=False
+)
+def display_page(pathname, df_json, profiles_dict,  objective_data, config_dict, ai_suggestions, session_data, store_kpi_data, store_filter_data):
+    """Route to appropriate page based on URL and authentication"""
+    if not pathname or pathname == '':
+        pathname = '/'
 
+    pathname = str(pathname).strip()
+    
+    session_data = session_data or {}
+    is_authenticated = session_data.get("is_authenticated", False)
+    role_id = session_data.get("role_id")
 
-def generate_companies_page():
+    #  Block all pages except /auth if not authenticated
+    # if pathname != '/auth' and not is_authenticated:
+    #     return page_auth.generate_auth_page()
+    
+    # Block all pages except login pages
+    if pathname not in ['/', '/login', '/admin-login'] and not is_authenticated:
+        return page_user_login.generate_user_login_page()
 
-    body = html.Div(
-
-        [
-
-            html.Div(
-                id="company-msg",
-                className="mb-3"
-            ),
-
-            dbc.Card(
-
-                dbc.CardBody(
-
+    #  Redirect authenticated users away from /auth page
+    # if pathname == '/auth' and is_authenticated:
+    
+    print("PATHNAME:", pathname)
+    print("AUTH =", is_authenticated)
+    print("ROLE ID =", role_id)
+    print("--------------------------")
+    
+    if pathname in ['/auth', '/login'] and is_authenticated:
+        print("INSIDE AUTH REDIRECT")
+        print("PATHNAME:", pathname)
+        print("ROLE ID =", role_id)
+        
+        if role_id == 1:
+            from pages import page_admin_dashboard
+            return page_admin_dashboard.layout()
+            # from pages import page_companies
+            # return page_companies.generate_companies_page()
+        elif role_id == 2:
+            return page_upload.generate_upload_page()
+   
+    try:
+        # Show auth page
+        # if pathname == '/auth' or pathname == '/login' or pathname == '/':
+        #     return page_auth.generate_auth_page()
+        
+        if pathname == "/" or pathname == '/login':
+            return page_user_login.generate_user_login_page()
+        
+        elif pathname == '/admin-login':
+            return page_admin_login.generate_admin_login_page()
+        
+        # Route to pages
+        
+        # Check data for other routes
+        if pathname in ["/upload", "/data-review", "/config", "/dashboard"]:
+            if not df_json or not profiles_dict:
+                return html.Div(
                     [
+                        html.H3("Error: Data not initialized"),
+                        html.P("Please refresh the page."),
+                    ],
+                    style={'padding': '20px', 'textAlign': 'center', 'color': 'red'}
+                )
 
-                        html.H5(
-                            "Create Company",
-                            className="fw-bold mb-4"
-                        ),
+            current_df = get_cached_dataframe()
+            if current_df is None:
+                return html.Div(
+                    [html.H3("Error: Data not loaded"), html.P("Check server logs.")],
+                    style={'padding': '20px', 'color': 'red'}
+                )
 
-                        dbc.Row(
+            current_profiles = load_cached_profiles()
+            if not current_profiles:
+                return html.Div(
+                    [html.H3("Error: Profiles not available"), html.P("Check server logs.")],
+                    style={'padding': '20px', 'color': 'red'}
+                )
 
-                            [
+            confirmed_dtypes = session_data.get('confirmed_dtypes', {})
+            if not confirmed_dtypes:
+                confirmed_dtypes = {}
+                for col, profile_data in current_profiles.items():
+                    confirmed_dtypes[col] = profile_data.get('dtype', 'categorical')
 
-                                dbc.Col(
+        if pathname == '/upload':
+            if role_id != 2:
+                return html.H3("Access Denied")
+            return page_upload.generate_upload_page()
 
-                                    [
+        elif pathname == '/config':
+            if role_id != 2:
+                return html.H3("Access Denied")
+            return page_config.generate_config_page(current_df, current_profiles, confirmed_dtypes)
 
-                                        dbc.Label(
-                                            "Company Name",
-                                            className="fw-semibold"
-                                        ),
+        elif pathname == '/dashboard':
+            if role_id != 2:
+                return html.H3("Access Denied")
+            # Give priority to loaded dashboard values
+            kpi_selections = session_data.get('kpi_selections', store_kpi_data or [])
+            filter_selections = session_data.get('filter_selections', store_filter_data or [])
 
-                                        dbc.Input(
-                                            id="company-name",
-                                            placeholder="Enter company name"
-                                        )
+            print("=" *80)
+            print("DASHBOARD PAGE")
+            print("AI_SUGGESTIONS TYPE:", type(ai_suggestions))
+            print("AI_SUGGESTIONS:", ai_suggestions)
+            print("=" * 80)
+            
+            effective_config = ai_suggestions or config_dict
+            
+            llm_analysis = None
+            if effective_config:
+                llm_analysis = AnalysisFormatter.format_analysis(
+                    type('DashboardConfig', (), effective_config)() if isinstance(effective_config, dict) else effective_config
+                )
 
-                                    ],
-
-                                    md=4
-
-                                ),
-
-                                dbc.Col(
-
-                                    [
-
-                                        dbc.Label(
-                                            "Company Code",
-                                            className="fw-semibold"
-                                        ),
-
-                                        dbc.Input(
-                                            id="company-code",
-                                            placeholder="Enter company code"
-                                        )
-
-                                    ],
-
-                                    md=4
-
-                                ),
-
-                                dbc.Col(
-
-                                    [
-
-                                        dbc.Label(
-                                            "Status",
-                                            className="fw-semibold"
-                                        ),
-
-                                        dcc.Dropdown(
-
-                                            id="company-status",
-
-                                            options=[
-                                                {
-                                                    "label": "Active",
-                                                    "value": True
-                                                },
-                                                {
-                                                    "label": "Inactive",
-                                                    "value": False
-                                                }
-                                            ],
-
-                                            value=True,
-
-                                            clearable=False
-
-                                        )
-
-                                    ],
-
-                                    md=4
-
-                                )
-
-                            ],
-
-                            className="g-3"
-
-                        ),
-
-                        html.Br(),
-
-                        dbc.Button(
-
-                            "Create Company",
-
-                            id="btn-create-company",
-
-                            color="primary"
-
-                        )
-
-                    ]
-
-                ),
-
-                className="shadow-sm border-0 rounded-4 mb-4"
-
-            ),
-
-            dbc.Card(
-
-                dbc.CardBody(
-
-                    [
-
-                        html.H5(
-
-                            "Company List",
-
-                            className="fw-bold mb-3"
-
-                        ),
-
-                        html.Div(
-                            id="company-table"
-                        )
-
-                    ]
-
-                ),
-
-                className="shadow-sm border-0 rounded-4"
-
+            result = page_dashboard.generate_dashboard_page(
+                current_df,
+                kpi_selections=kpi_selections,
+                filter_selections=filter_selections,
+                confirmed_dtypes=confirmed_dtypes,
+                llm_analysis=llm_analysis
             )
+            return result
+        
+        elif pathname == '/data-review':
+            if role_id != 2:
+                return html.H3("Access Denied")
+            return page_data_review.generate_data_review_page(current_df, current_profiles)
+        
+        elif pathname == "/admin":
+            if role_id != 1:
+                return html.H3("Access Denied")
+            from pages import page_admin_dashboard
+            return page_admin_dashboard.layout()
+        
+        elif pathname == '/users':
+            if role_id != 1:
+                return html.H3("Access Denied")
+            from pages import page_users
+            return page_users.generate_users_page()
 
-        ]
+        elif pathname == '/companies':
+            if role_id != 1:
+                return html.H3("Access Denied")
+            from pages import page_companies
+            return page_companies.generate_companies_page()
+        
+        elif pathname == '/mapping':
+            if role_id != 1:
+                return html.H3("Access Denied")
 
-    )
+            from pages import page_user_company
+            return page_user_company.generate_mapping_page()
+        
+        elif pathname == '/portal':
+            if role_id != 1:
+                return html.H3("Access Denied")
+            from pages import page_portal
+            return page_portal.generate_portal_page()
 
-    return admin_layout(
+        else:
+            return page_user_login.generate_user_login_page()
 
-        title="Company Master",
-
-        body=body,
-
-        active="companies"
-
-    )
-
+    except Exception as e:
+        import traceback
+        print(f"[ERROR] display_page: {type(e).__name__}: {e}\n{traceback.format_exc()}")
+        return html.Div(
+            [html.H3("Error loading page"), html.P("Check server logs.")],
+            style={'padding': '20px', 'backgroundColor': '#ffeeee', 'color': '#cc0000'}
+        )
