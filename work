@@ -1,1 +1,54 @@
+def layout():
 
+    body = html.Div(
+
+        [
+
+            html.P(
+                "Welcome to the administration console. Select a module below.",
+                style={
+                    "color": "#6B7280",
+                    "marginBottom": "35px"
+                }
+            ),
+
+            dbc.Row(
+
+                [
+
+                    admin_card(
+                        "👤",
+                        "Users",
+                        "Create and manage users.",
+                        "/users"
+                    ),
+
+                    admin_card(
+                        "🏢",
+                        "Companies",
+                        "Create and manage companies.",
+                        "/companies"
+                    ),
+
+                    admin_card(
+                        "🔗",
+                        "Mapping",
+                        "Assign companies to users.",
+                        "/mapping"
+                    ),
+
+                ],
+
+                className="g-4"
+
+            )
+
+        ]
+
+    )
+
+    return admin_layout(
+        title="Admin Dashboard",
+        body=body,
+        active="home"
+    )
