@@ -1,1 +1,28 @@
 
+/* ===========================
+   PORTAL PAGE DROPDOWN FIX
+=========================== */
+
+#portal-company-dropdown {
+    position: relative;
+    z-index: 1000;
+}
+
+#portal-company-dropdown .Select-menu-outer,
+#portal-company-dropdown .Select-menu,
+#portal-company-dropdown .Select__menu {
+    z-index: 99999 !important;
+}
+
+#portal-company-dropdown .Select-control,
+#portal-company-dropdown .Select__control {
+    position: relative;
+    z-index: 1000;
+}
+
+/* Allow dropdown to overflow card */
+
+.card,
+.card-body {
+    overflow: visible !important;
+}
