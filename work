@@ -1,1 +1,349 @@
+from dash import html, dcc
+import dash_bootstrap_components as dbc
+from components.admin_layout import admin_layout
 
+
+def generate_users_page():
+
+    body = html.Div(
+
+        [
+
+            dcc.Store(id="selected-user-id"),
+
+            html.Div(
+                id="create-user-msg",
+                className="mb-3"
+            ),
+
+            # ---------------------------------------------------
+            # CREATE USER CARD
+            # ---------------------------------------------------
+
+            dbc.Card(
+
+                dbc.CardBody(
+
+                    [
+
+                        dbc.Row(
+
+                            [
+
+                                dbc.Col(
+
+                                    [
+
+                                        html.H4(
+                                            "Create User",
+                                            className="fw-bold mb-1"
+                                        ),
+
+                                        html.P(
+                                            "Add a new user and assign application access.",
+                                            className="text-muted mb-4"
+                                        )
+
+                                    ],
+
+                                    md=8
+
+                                ),
+
+                                dbc.Col(
+
+                                    html.Div(
+
+                                        dbc.Badge(
+                                            "User Management",
+                                            color="primary",
+                                            className="px-3 py-2"
+                                        ),
+
+                                        className="text-end"
+
+                                    ),
+
+                                    md=4
+
+                                )
+
+                            ]
+
+                        ),
+
+                        dbc.Row(
+
+                            [
+
+                                dbc.Col(
+
+                                    [
+
+                                        dbc.Label(
+                                            "Username",
+                                            className="fw-semibold"
+                                        ),
+
+                                        dbc.Input(
+                                            id="user-username",
+                                            placeholder="Enter username",
+                                            type="text"
+                                        )
+
+                                    ],
+
+                                    md=3
+
+                                ),
+
+                                dbc.Col(
+
+                                    [
+
+                                        dbc.Label(
+                                            "Password",
+                                            className="fw-semibold"
+                                        ),
+
+                                        dbc.Input(
+                                            id="user-password",
+                                            placeholder="Enter password",
+                                            type="password"
+                                        )
+
+                                    ],
+
+                                    md=3
+
+                                ),
+
+                                dbc.Col(
+
+                                    [
+
+                                        dbc.Label(
+                                            "Role",
+                                            className="fw-semibold"
+                                        ),
+
+                                        dbc.Select(
+
+                                            id="user-role",
+
+                                            options=[
+
+                                                {
+                                                    "label": "Admin",
+                                                    "value": 1
+                                                },
+
+                                                {
+                                                    "label": "User",
+                                                    "value": 2
+                                                }
+
+                                            ],
+
+                                            value=2
+
+                                        )
+
+                                    ],
+
+                                    md=3
+
+                                ),
+
+                                dbc.Col(
+
+                                    dbc.Button(
+
+                                        [
+
+                                            html.I(className="bi bi-person-plus-fill me-2"),
+
+                                            "Create User"
+
+                                        ],
+
+                                        id="btn-save-user",
+
+                                        color="primary",
+
+                                        className="w-100"
+
+                                    ),
+
+                                    md=3,
+
+                                    className="d-flex align-items-end"
+
+                                )
+
+                            ],
+
+                            className="g-3"
+
+                        )
+
+                    ]
+
+                ),
+
+                className="shadow-sm border-0 rounded-4 mb-4"
+
+            ),
+
+            # ---------------------------------------------------
+            # USER LIST
+            # ---------------------------------------------------
+
+            dbc.Card(
+
+                dbc.CardBody(
+
+                    [
+
+                        dbc.Row(
+
+                            [
+
+                                dbc.Col(
+
+                                    [
+
+                                        html.H4(
+                                            "User Directory",
+                                            className="fw-bold mb-1"
+                                        ),
+
+                                        html.Div(
+                                            "Manage existing users.",
+                                            className="text-muted"
+                                        )
+
+                                    ],
+
+                                    md=6
+
+                                ),
+
+                                dbc.Col(
+
+                                    dbc.Input(
+
+                                        placeholder="Search users...",
+
+                                        type="text",
+
+                                        className="user-search"
+
+                                    ),
+
+                                    md=4
+
+                                ),
+
+                                dbc.Col(
+
+                                    html.Div(
+
+                                        "Total Users",
+
+                                        className="fw-bold text-primary text-end pt-2"
+
+                                    ),
+
+                                    md=2
+
+                                )
+
+                            ],
+
+                            className="mb-4 align-items-center"
+
+                        ),
+
+                        html.Div(
+
+                            [
+
+                                html.Table(
+
+                                    [
+
+                                        html.Thead(
+
+                                            html.Tr(
+
+                                                [
+
+                                                    html.Th(
+                                                        "Action",
+                                                        style={"width": "12%"}
+                                                    ),
+
+                                                    html.Th(
+                                                        "Username",
+                                                        style={"width": "40%"}
+                                                    ),
+
+                                                    html.Th(
+                                                        "Role",
+                                                        style={"width": "20%"}
+                                                    ),
+
+                                                    html.Th(
+                                                        "Status",
+                                                        style={
+                                                            "width": "28%",
+                                                            "textAlign": "center"
+                                                        }
+                                                    )
+
+                                                ]
+
+                                            )
+
+                                        ),
+
+                                        html.Tbody(
+
+                                            id="users-list"
+
+                                        )
+
+                                    ],
+
+                                    className="table table-hover align-middle"
+
+                                )
+
+                            ],
+
+                            className="table-responsive"
+
+                        )
+
+                    ]
+
+                ),
+
+                className="shadow-sm border-0 rounded-4"
+
+            )
+
+        ]
+
+    )
+
+    return admin_layout(
+
+        title="User Master",
+
+        body=body,
+
+        active="users"
+
+    )
