@@ -1,1 +1,30 @@
 
+/* ==========================================
+   Mapping Page Dropdown Fix
+========================================== */
+
+.card{
+    overflow:hidden;
+}
+
+.table-responsive{
+    overflow-x:auto;
+    overflow-y:visible;
+}
+
+.Select{
+    position:relative;
+}
+
+.Select-menu-outer{
+    z-index:5000 !important;
+    border-radius:10px;
+}
+
+.VirtualizedSelectOption{
+    padding:10px 14px;
+}
+
+.VirtualizedSelectFocusedOption{
+    background:#EEF4FF !important;
+}
