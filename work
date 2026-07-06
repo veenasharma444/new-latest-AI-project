@@ -1,1 +1,143 @@
+# ==========================================================
+# ADMIN LAYOUT
+# ==========================================================
 
+def admin_layout(
+    title,
+    body,
+    active="home",
+    username="Administrator",
+    role="Admin",
+):
+
+    # Support both:
+    # body = [...]
+    # body = html.Div(...)
+    if isinstance(body, list):
+        page_children = body
+    else:
+        page_children = [body]
+
+    return html.Div(
+
+        [
+
+            header(
+                username=username,
+                role=role
+            ),
+
+            # ==================================================
+            # NAVIGATION
+            # ==================================================
+
+            html.Div(
+
+                [
+
+                    nav_item(
+                        "Home",
+                        "/admin",
+                        active == "home"
+                    ),
+
+                    nav_item(
+                        "Users",
+                        "/users",
+                        active == "users"
+                    ),
+
+                    nav_item(
+                        "Companies",
+                        "/companies",
+                        active == "companies"
+                    ),
+
+                    nav_item(
+                        "Mapping",
+                        "/mapping",
+                        active == "mapping"
+                    ),
+
+                    nav_item(
+                        "Portal",
+                        "/portal",
+                        active == "portal"
+                    )
+
+                ],
+
+                style={
+
+                    "display": "flex",
+                    "justifyContent": "center",
+                    "alignItems": "center",
+                    "padding": "18px 0",
+                    "background": WHITE,
+                    "borderBottom": f"1px solid {BORDER}"
+
+                }
+
+            ),
+
+            # ==================================================
+            # PAGE CONTENT
+            # ==================================================
+
+            html.Div(
+
+                [
+
+                    html.H2(
+
+                        title,
+
+                        style={
+
+                            "fontWeight": "700",
+                            "fontSize": "34px",
+                            "marginBottom": "8px",
+                            "color": TEXT
+
+                        }
+
+                    ),
+
+                    html.P(
+
+                        "Manage your administration tasks from one place.",
+
+                        style={
+
+                            "color": TEXT_LIGHT,
+                            "marginBottom": "35px"
+
+                        }
+
+                    ),
+
+                    *page_children
+
+                ],
+
+                style={
+
+                    "maxWidth": "1350px",
+                    "margin": "40px auto",
+                    "padding": "0 24px",
+                    "minHeight": "calc(100vh - 170px)"
+
+                }
+
+            )
+
+        ],
+
+        style={
+
+            "background": BACKGROUND,
+            "minHeight": "100vh"
+
+        }
+
+    )
