@@ -1,122 +1,248 @@
-from dash import html, dcc
-import dash_bootstrap_components as dbc
-from components.admin_layout import admin_layout
+
+/* ==========================================================
+   USER MASTER PAGE
+========================================================== */
+
+body{
+    background:#F5F7FA;
+}
+
+/* Cards */
+
+.card{
+    border:1px solid #E5E7EB !important;
+    border-radius:14px !important;
+    box-shadow:0 2px 10px rgba(15,23,42,.05) !important;
+}
+
+.card-body{
+    padding:24px !important;
+}
+
+/* Form */
+
+.form-control,
+.form-select{
+    height:44px;
+    border-radius:10px;
+    border:1px solid #D1D5DB;
+}
+
+.form-control:focus,
+.form-select:focus{
+    box-shadow:none;
+    border-color:#2563EB;
+}
+
+/* Buttons */
+
+.btn-primary{
+    border-radius:10px;
+    font-weight:600;
+}
+
+.btn-link{
+    text-decoration:none;
+}
+
+/* Table */
+
+.table{
+    width:100%;
+    margin-bottom:0;
+}
+
+.table thead th{
+    background:#F8FAFC;
+    color:#374151;
+    font-weight:600;
+    border-bottom:1px solid #E5E7EB;
+    padding:14px;
+}
+
+.table tbody td{
+    padding:16px 14px;
+    vertical-align:middle;
+}
+
+.table tbody tr:hover{
+    background:#F9FAFB;
+}
+
+/* Role badge */
+
+.badge{
+    padding:7px 14px !important;
+    font-size:12px !important;
+    font-weight:600;
+}
+
+/* Green Switch */
+
+.form-check-input{
+    width:48px;
+    height:24px;
+}
+
+.form-check-input:checked{
+    background:#22C55E !important;
+    border-color:#22C55E !important;
+}
+
+.form-check-input:focus{
+    box-shadow:none !important;
+}
+
+/* Edit Button */
+
+.edit-btn{
+    color:#2563EB;
+    font-weight:600;
+    border:none;
+    background:none;
+}
+
+.edit-btn:hover{
+    color:#1D4ED8;
+}
+
+/* Search */
+
+.user-search{
+    max-width:320px;
+}
+
+/* Message */
+
+.alert{
+    border-radius:10px;
+}
+
+/* ===========================
+   COMPANY TABLE
+=========================== */
+
+.table {
+    margin-bottom: 0;
+}
+
+.table thead th {
+    background: #F8FAFC;
+    border-bottom: 2px solid #E5E7EB;
+    color: #374151;
+    font-weight: 600;
+    padding: 14px 18px;
+}
+
+.table tbody td {
+    padding: 16px 18px;
+    vertical-align: middle;
+}
+
+.table tbody tr:hover {
+    background: #F9FAFB;
+}
+
+.table-responsive {
+    border: 1px solid #E5E7EB;
+    border-radius: 12px;
+    overflow: hidden;
+}
 
 
-def generate_mapping_page():
-    
-    body = html.Div(
+/* ---------- Card ---------- */
 
-        [
+.card{
+    border:none !important;
+    border-radius:16px !important;
+    box-shadow:0 2px 10px rgba(0,0,0,.06) !important;
+}
 
-            html.Div(
-                id="mapping-msg",
-                className="mb-3"
-            ),
+/* ---------- Labels ---------- */
 
-            dbc.Card(
+label{
+    font-weight:600;
+    color:#374151;
+    margin-bottom:6px;
+}
 
-                dbc.CardBody(
+/* ---------- Inputs ---------- */
 
-                    [
+.form-control,
+.Select-control,
+.Select__control{
+    height:44px !important;
+    border-radius:10px !important;
+    border:1px solid #D1D5DB !important;
+    box-shadow:none !important;
+}
 
-                        html.H4(
-                            "Assign Companies",
-                            className="fw-bold mb-1"
-                        ),
+/* ---------- Dropdown ---------- */
 
-                        html.P(
-                            "Map one or more companies to a user.",
-                            className="text-muted mb-4"
-                        ),
+.Select-menu-outer{
+    border-radius:10px;
+}
 
-                        dbc.Row(
+/* ---------- Buttons ---------- */
 
-                            [
+.btn-primary{
+    border-radius:10px !important;
+    height:44px;
+    font-weight:600;
+}
 
-                                dbc.Col(
+/* ---------- Tables ---------- */
 
-                                    [
+.table{
+    margin-bottom:0;
+}
 
-                                        dbc.Label(
-                                            "User",
-                                            className="fw-semibold mb-2"
-                                        ),
+.table thead th{
+    background:#F8FAFC;
+    color:#374151;
+    font-weight:700;
+    border-bottom:2px solid #E5E7EB;
+}
 
-                                        dcc.Dropdown(
-                                            id="mapping-user-dropdown",
-                                            placeholder="Select User"
-                                        )
+.table td{
+    vertical-align:middle;
+    padding:14px;
+}
 
-                                    ],
+.table tbody tr:hover{
+    background:#F9FAFB;
+}
 
-                                    md=4
+/* ---------- Responsive ---------- */
 
-                                ),
+.table-responsive{
+    overflow-x:auto;
+}
 
-                                dbc.Col(
 
-                                    [
+.Select-menu-outer{
+    z-index:9999 !important;
+}
 
-                                        dbc.Label(
-                                            "Companies",
-                                            className="fw-semibold mb-2"
-                                        ),
+.VirtualizedSelectFocusedOption{
+    background:#EEF4FF !important;
+}
 
-                                        dcc.Dropdown(
-                                            id="mapping-company-dropdown",
-                                            multi=True,
-                                            placeholder="Select Companies",
-                                            optionHeight=40,
-                                            maxHeight=220
-                                        )
-                                    ],
-                                    md=5
-                                ),
 
-                                dbc.Col(
-                                    dbc.Button(
-                                        "Assign",
-                                        id="btn-assign-company",
-                                        color="primary",
-                                        className="w-100"
-                                    ),
-                                    md=3,
-                                    className="d-flex align-items-end"
+/* ---------- Fix Dropdown Overlap ---------- */
 
-                                )
-                            ],
-                            className="g-3"
-                        )
-                    ]
-                ),
-                className="shadow-sm border-0 rounded-4 mb-5"
-            ),
+.card{
+    overflow: visible !important;
+}
 
-            dbc.Card(
-                dbc.CardBody(
-                    [
-                        html.H4(
-                            "Mapped Companies",
-                            className="fw-bold mb-1"
-                        ),
-                        html.P(
-                            "Users and their assigned companies.",
-                            className="text-muted mb-4"
-                        ),
-                        html.Div(
-                            id="mapping-table",
-                            className="table-responsive"
-                        )
-                    ]
-                ),
-                className="shadow-sm border-0 rounded-4 mt-5"
-            )
-        ]
-    )
-    
-    return admin_layout(
-        title="Company Mapping",
-        body=body,
-        active="mapping"
-    )
+.Select-menu-outer{
+    z-index:99999 !important;
+}
+
+.Select__menu{
+    z-index:99999 !important;
+}
+
+.table-responsive{
+    overflow: visible !important;
+}
