@@ -1,1 +1,60 @@
 
+return dbc.Table(
+
+    [
+
+        html.Thead(
+
+            html.Tr(
+
+                [
+
+                    html.Th("#", style={"width": "8%"}),
+
+                    html.Th("User"),
+
+                    html.Th("Assigned Company")
+
+                ]
+
+            )
+
+        ),
+
+        html.Tbody(
+
+            [
+
+                html.Tr(
+
+                    [
+
+                        html.Td(i + 1),
+
+                        row.children[0],
+
+                        row.children[1]
+
+                    ]
+
+                )
+
+                for i, row in enumerate(rows)
+
+            ]
+
+        )
+
+    ],
+
+    bordered=False,
+
+    hover=True,
+
+    responsive=True,
+
+    className="table align-middle"
+
+)
+
+
