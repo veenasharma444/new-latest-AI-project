@@ -1,54 +1,121 @@
 
- @app.callback(
-        Output('save-dashboard-status', 'children'),
-        Input('btn-save-dashboard', 'n_clicks'),
-        State('save-dashboard-name', 'value'),
-        State('store-kpi-selections-dashboard', 'data'),
-        State('store-filter-selections-dashboard', 'data'),
-        State('store-confirmed-dtypes-dashboard', 'data'),
-        State('store-ai-suggestions', 'data'),
-        State('store-upload-id', 'data'),
-        State('session-state', 'data'),
-        prevent_initial_call=True
+from dash import html, dcc
+import dash_bootstrap_components as dbc
+from components.admin_layout import admin_layout
+
+
+def generate_portal_page():
+
+    body = html.Div(
+
+        [
+
+            dbc.Card(
+
+                dbc.CardBody(
+
+                    [
+
+                        html.H3(
+                            "Onex AI Data Insight Portal",
+                            className="fw-bold"
+                        ),
+
+                        html.P(
+                            "Select a company to access its dashboard.",
+                            style={
+                                "color": "#6B7280",
+                                "marginBottom": "30px"
+                            }
+                        ),
+
+                        dbc.Row(
+
+                            [
+
+                                dbc.Col(
+
+                                    [
+
+                                        dbc.Label(
+                                            "Company",
+                                            className="fw-semibold"
+                                        ),
+
+                                        dcc.Dropdown(
+
+                                            id="portal-company-dropdown",
+
+                                            placeholder="Select Company",
+
+                                            options=[],
+
+                                            clearable=False
+
+                                        )
+
+                                    ],
+
+                                    md=8
+
+                                ),
+
+                                dbc.Col(
+
+                                    [
+
+                                        dbc.Button(
+
+                                            "Access Workspace",
+
+                                            id="btn-open-company",
+
+                                            color="primary",
+
+                                            className="w-100"
+
+                                        )
+
+                                    ],
+
+                                    md=4,
+
+                                    className="d-flex align-items-end"
+
+                                )
+
+                            ],
+
+                            className="g-3"
+
+                        ),
+
+                        html.Hr(className="my-4"),
+
+                        html.Div(
+
+                            id="portal-company-info"
+
+                        )
+
+                    ]
+
+                ),
+
+                className="shadow-sm border-0 rounded-4"
+
+            )
+
+        ]
+
     )
-    def save_dashboard_callback(n_clicks,dashboard_name,kpis,filters,dtypes,ai_suggestions,upload_id,session_data):
 
-        if not dashboard_name:
-            return "Please enter dashboard name"
+    return admin_layout(
 
-        user_id = (session_data or {}).get("user_id")
+        title="Portal",
 
-        if not user_id:
-            return "User session not found"
+        body=body,
 
-        # manifest = CacheManager.load_manifest()
-        # upload_id = manifest.get("active_upload_id")
+        active="portal"
 
-        if not upload_id:
-            return "No active upload found"
-
-        print("UPLOAD_ID =", upload_id)
-        print("TYPE=", type(upload_id))
-        print("SESSION_DATA =", session_data)
-        
-        print("SAVE BUTTON CLICKED")
-        print("dashboard_name =", dashboard_name)
-        print("user_id =", user_id)
-        print("upload_id =", upload_id)
-        
-        result = save_dashboard(
-            dashboard_name,
-            user_id,
-            upload_id,
-            kpis or [],
-            filters or [],
-            dtypes or {},
-            ai_suggestions or {}
-        )
-        
-        print("RESULT =", result)
-        
-        if result.get("success"):
-            return f" Dashboard '{dashboard_name}' saved successfully"
-
-        return f" {result.get('message', 'Save failed')}"
+    )
