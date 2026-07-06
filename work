@@ -1,215 +1,199 @@
-import dash
-from dash import Input, Output, State
-from dash import html
-from dash.exceptions import PreventUpdate
+from dash import html, dcc
 import dash_bootstrap_components as dbc
-from core.auth import (register_user, get_all_users, update_user)
 
+# ==========================================================
+# THEME
+# ==========================================================
 
+PRIMARY = "#2563EB"
+TEXT = "#111827"
+TEXT_LIGHT = "#6B7280"
+BORDER = "#E5E7EB"
+BACKGROUND = "#F8FAFC"
+WHITE = "#FFFFFF"
 
-def build_user_rows(users):
+# ==========================================================
+# NAVIGATION ITEM
+# ==========================================================
 
-    children = []
+def nav_item(title, href, active=False):
+    return dcc.Link(
+        title,
+        href=href,
+        style={
+            "textDecoration": "none",
+            "padding": "18px 6px",
+            "marginRight": "34px",
+            "fontSize": "15px",
+            "fontWeight": "600",
+            "color": PRIMARY if active else TEXT,
+            "borderBottom": f"3px solid {PRIMARY}" if active else "3px solid transparent",
+            "transition": "all .2s ease",
+        },
+    )
 
-    for user in users:
+# ==========================================================
+# HEADER
+# ==========================================================
 
-        children.append(
-
-            html.Tr(
-
+def header(username="Administrator", role="Admin"):
+    return html.Div(
+        [
+            html.Div(
                 [
-
-                    html.Td(
-                        html.Button(
-                            "✏️",
-                            id={
-                                "type": "edit-user",
-                                "index": user["user_id"]
-                            },
-                            className="btn btn-link edit-btn"
-                        )
+                    html.Img(
+                        src="/assets/onex_software_logo.png",
+                        style={
+                            "height": "58px",
+                            "marginRight": "18px",
+                        },
                     ),
-
-                    html.Td(user["username"]),
-
-                    html.Td(
-                        dbc.Badge(
-                            user["role"],
-                            color="primary",
-                            pill=True
-                        )
-                    ),
-
-                    html.Td(
-                        dbc.Switch(
-                            id={
-                                "type": "toggle-user",
-                                "index": user["user_id"]
-                            },
-                            value=user["is_active"]
-                        )
-                    )
-
-                ]
-
-            )
-
-        )
-
-    return children
-
-
-def register_users_callbacks(app):
-
-    @app.callback(
-        Output("users-list", "children"),
-        Input("url", "pathname")
-    )
-    
-    def load_users(pathname):
-
-        if pathname != "/users":
-            raise PreventUpdate
-        
-        users = get_all_users()
-        children = []
-        for user in users:
-
-            children.append(
-                    html.Tr(
+                    html.Div(
                         [
-
-                            html.Td(
-                                html.Button(
-                                    "✏️",
-                                    id={
-                                        "type": "edit-user",
-                                        "index": user["user_id"]
-                                    },
-                                    className="btn btn-link edit-btn"
-                                )
+                            html.Div(
+                                "Onex AI Data Insight Platform",
+                                style={
+                                    "fontSize": "24px",
+                                    "fontWeight": "700",
+                                    "color": TEXT,
+                                },
                             ),
-
-                            html.Td(user["username"]),
-
-                            html.Td(
-                                dbc.Badge(
-                                    user["role"],
-                                    color="primary",
-                                    pill=True
-                                )
+                            html.Div(
+                                "Admin Console",
+                                style={
+                                    "fontSize": "14px",
+                                    "color": TEXT_LIGHT,
+                                },
                             ),
-
-                            html.Td(
-                                dbc.Switch(
-                                    id={
-                                        "type": "toggle-user",
-                                        "index": user["user_id"]
-                                    },
-                                    value=user["is_active"]
-                                )
-                            )
-
                         ]
-                    )
-                )
-        return build_user_rows(users)
-        
-    
-    # @app.callback(
-    #     Output("selected-user-id", "data"),
-    #     Output("user-username", "value"),
-    #     Output("user-password", "value"),
-    #     Output("user-role", "value"),
-    #     Output("btn-save-user", "children"),
-    #     Input("users-list", "active_cell"),
-    #     State("users-list", "data"),
-    #     prevent_initial_call=True
-    # )
-    
-    # def edit_user(active_cell, rows):
-
-    #     if not active_cell:
-    #         raise PreventUpdate
-
-    #     if active_cell["column_id"] != "action":
-    #         raise PreventUpdate
-
-    #     row = rows[active_cell["row"]]
-
-    #     role = row["role"]
-
-    #     if role == "Admin":
-    #         role_id = 1
-    #     else:
-    #         role_id = 2
-
-    #     return (
-    #         row["user_id"],
-    #         row["username"],
-    #         "",
-    #         role_id,
-    #         "Update User"
-    #     )
-    
-    @app.callback(
-
-        Output("create-user-msg", "children"),
-        Output("users-list", "children", allow_duplicate=True),
-        Input("btn-save-user", "n_clicks"),
-        State("selected-user-id", "data"),
-        State("user-username", "value"),
-        State("user-password", "value"),
-        State("user-role", "value"),
-        prevent_initial_call=True
-
+                    ),
+                ],
+                style={
+                    "display": "flex",
+                    "alignItems": "center",
+                },
+            ),
+            html.Div(
+                [
+                    html.Div(
+                        [
+                            html.Div(
+                                username,
+                                style={
+                                    "fontWeight": "700",
+                                    "fontSize": "15px",
+                                },
+                            ),
+                            html.Div(
+                                role,
+                                style={
+                                    "fontSize": "13px",
+                                    "color": TEXT_LIGHT,
+                                },
+                            ),
+                        ],
+                        style={
+                            "textAlign": "right",
+                            "marginRight": "18px",
+                        },
+                    ),
+                    dbc.Button(
+                        "Logout",
+                        id="btn-admin-logout",
+                        outline=True,
+                        color="danger",
+                        size="sm",
+                        style={
+                            "borderRadius": "8px",
+                            "padding": "7px 18px",
+                        },
+                    ),
+                ],
+                style={
+                    "display": "flex",
+                    "alignItems": "center",
+                },
+            ),
+        ],
+        style={
+            "display": "flex",
+            "justifyContent": "space-between",
+            "alignItems": "center",
+            "padding": "18px 40px",
+            "background": WHITE,
+            "borderBottom": f"1px solid {BORDER}",
+        },
     )
-# Create callback
-    def save_user(n, selected_user_id, username, password, role):
 
-        if not n:
-            raise PreventUpdate
+# ==========================================================
+# ADMIN LAYOUT
+# ==========================================================
 
-        # ---------------- UPDATE ----------------
-        if selected_user_id:
+def admin_layout(
+    title,
+    body,
+    active="home",
+    username="Administrator",
+    role="Admin",
+):
 
-            result = update_user(
-                selected_user_id,
-                username,
-                password,
-                role
-            )
-
-            success_msg = "User updated successfully"
-
-        # ---------------- CREATE ----------------
-        else:
-
-            result = register_user(
+    return html.Div(
+        [
+            header(
                 username=username,
-                email=f"{username}@company.com",
-                name=username,
-                password=password,
-                role_id=role
-            )
+                role=role,
+            ),
 
-            success_msg = "User created successfully"
+            html.Div(
+                [
+                    nav_item("Home", "/admin", active == "home"),
+                    nav_item("Users", "/users", active == "users"),
+                    nav_item("Companies", "/companies", active == "companies"),
+                    nav_item("Mapping", "/mapping", active == "mapping"),
+                    nav_item("Portal", "/portal", active == "portal"),
+                ],
+                style={
+                    "display": "flex",
+                    "alignItems": "center",
+                    "padding": "0px 42px",
+                    "height": "58px",
+                    "backgroundColor": WHITE,
+                    "borderBottom": f"1px solid {BORDER}",
+                },
+            ),
 
-        if not result["success"]:
-            return dbc.Alert(result["message"], color="danger"), dash.no_update
+            html.Div(
+                [
+                    html.H2(
+                        title,
+                        style={
+                            "fontSize": "32px",
+                            "fontWeight": "700",
+                            "marginBottom": "8px",
+                            "color": TEXT,
+                        },
+                    ),
 
-        users = get_all_users()
-        rows = []
-        for user in users:
-            rows.append({
+                    html.P(
+                        "Manage your administration tasks from one place.",
+                        style={
+                            "color": TEXT_LIGHT,
+                            "marginBottom": "28px",
+                        },
+                    ),
 
-                "user_id": user["user_id"],
-                "action": "✏️",
-                "username": user["username"],
-                "role": user["role"],
-                "status": "🟢 ON" if user["is_active"] else "⚪ OFF",
-                "is_active": user["is_active"]
+                    # FIX: expand body list instead of nesting it
+                    *body,
+                ],
+                style={
+                    "padding": "40px",
+                    "backgroundColor": BACKGROUND,
+                    "minHeight": "calc(100vh - 132px)",
+                },
+            ),
+        ],
+        style={
+            "backgroundColor": BACKGROUND,
+        },
+    )
 
-            })
-
-        return dbc.Alert(success_msg, color="success"), build_user_rows(users)
