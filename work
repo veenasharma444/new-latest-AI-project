@@ -1,1 +1,18 @@
 
+/* ---------- Fix Dropdown Overlap ---------- */
+
+.card{
+    overflow: visible !important;
+}
+
+.Select-menu-outer{
+    z-index:99999 !important;
+}
+
+.Select__menu{
+    z-index:99999 !important;
+}
+
+.table-responsive{
+    overflow: visible !important;
+}
