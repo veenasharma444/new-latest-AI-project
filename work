@@ -1,94 +1,144 @@
+from dash import html, dcc
+import dash_bootstrap_components as dbc
+from components.admin_layout import admin_layout
 
-@callback(
-    Output("company-table", "children"),
-    Input("company-table", "id")
-)
-def load_companies(_):
 
-    session = get_session()
+def generate_mapping_page():
 
-    try:
+    body = html.Div(
 
-        companies = session.query(Company).order_by(Company.company_name).all()
+        [
 
-        rows = []
+            html.Div(
+                id="mapping-msg",
+                className="mb-3"
+            ),
 
-        for i, c in enumerate(companies, start=1):
+            dbc.Card(
 
-            rows.append(
-
-                html.Tr(
+                dbc.CardBody(
 
                     [
 
-                        html.Td(i),
+                        html.H5(
+                            "Assign Companies",
+                            className="fw-bold mb-4"
+                        ),
 
-                        html.Td(c.company_name),
+                        dbc.Row(
 
-                        html.Td(c.company_code),
+                            [
 
-                        html.Td(
+                                dbc.Col(
 
-                            dbc.Badge(
+                                    [
 
-                                "Active" if c.is_active else "Inactive",
+                                        dbc.Label(
+                                            "User",
+                                            className="fw-semibold"
+                                        ),
 
-                                color="success" if c.is_active else "secondary",
+                                        dcc.Dropdown(
+                                            id="mapping-user-dropdown",
+                                            placeholder="Select User"
+                                        )
 
-                                pill=True,
+                                    ],
 
-                                className="px-3 py-2"
+                                    md=6
 
-                            )
+                                ),
+
+                                dbc.Col(
+
+                                    [
+
+                                        dbc.Label(
+                                            "Companies",
+                                            className="fw-semibold"
+                                        ),
+
+                                        dcc.Dropdown(
+
+                                            id="mapping-company-dropdown",
+
+                                            multi=True,
+
+                                            placeholder="Select Companies"
+
+                                        )
+
+                                    ],
+
+                                    md=6
+
+                                )
+
+                            ],
+
+                            className="g-3"
+
+                        ),
+
+                        html.Br(),
+
+                        dbc.Button(
+
+                            "Assign Companies",
+
+                            id="btn-assign-company",
+
+                            color="primary"
 
                         )
 
                     ]
 
-                )
+                ),
 
-            )
+                className="shadow-sm border-0 rounded-4 mb-4"
 
-        return dbc.Table(
+            ),
 
-            [
+            dbc.Card(
 
-                html.Thead(
+                dbc.CardBody(
 
-                    html.Tr(
+                    [
 
-                        [
+                        html.H5(
 
-                            html.Th("#"),
+                            "Mapped Companies",
 
-                            html.Th("Company Name"),
+                            className="fw-bold mb-3"
 
-                            html.Th("Company Code"),
+                        ),
 
-                            html.Th("Status")
+                        html.Div(
+                            id="mapping-table"
+                        )
 
-                        ]
-
-                    )
+                    ]
 
                 ),
 
-                html.Tbody(rows)
+                className="shadow-sm border-0 rounded-4"
 
-            ],
+            )
 
-            bordered=False,
+        ]
 
-            hover=True,
+    )
 
-            responsive=True,
+    return admin_layout(
 
-            striped=False,
+        title="Company Mapping",
 
-            className="align-middle"
+        body=body,
 
-        )
+        active="mapping"
 
-    finally:
+    )
 
-        session.close()
+
+
