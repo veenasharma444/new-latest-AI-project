@@ -1,284 +1,392 @@
+from dash import html, dcc
+import dash_bootstrap_components as dbc
 
-/* ==========================================================
-   USER MASTER PAGE
-========================================================== */
-
-body{
-    background:#F5F7FA;
-}
-
-/* Cards */
-
-.card{
-    border:1px solid #E5E7EB !important;
-    border-radius:14px !important;
-    box-shadow:0 2px 10px rgba(15,23,42,.05) !important;
-}
+# ==========================================================
+# COLORS
+# ==========================================================
 
-.card-body{
-    padding:24px !important;
-}
+PRIMARY = "#2563EB"
+PRIMARY_LIGHT = "#EFF6FF"
 
-/* Form */
-
-.form-control,
-.form-select{
-    height:44px;
-    border-radius:10px;
-    border:1px solid #D1D5DB;
-}
-
-.form-control:focus,
-.form-select:focus{
-    box-shadow:none;
-    border-color:#2563EB;
-}
-
-/* Buttons */
-
-.btn-primary{
-    border-radius:10px;
-    font-weight:600;
-}
-
-.btn-link{
-    text-decoration:none;
-}
-
-/* Table */
-
-.table{
-    width:100%;
-    margin-bottom:0;
-}
-
-.table thead th{
-    background:#F8FAFC;
-    color:#374151;
-    font-weight:600;
-    border-bottom:1px solid #E5E7EB;
-    padding:14px;
-}
-
-.table tbody td{
-    padding:16px 14px;
-    vertical-align:middle;
-}
-
-.table tbody tr:hover{
-    background:#F9FAFB;
-}
-
-/* Role badge */
-
-.badge{
-    padding:7px 14px !important;
-    font-size:12px !important;
-    font-weight:600;
-}
-
-/* Green Switch */
-
-.form-check-input{
-    width:48px;
-    height:24px;
-}
-
-.form-check-input:checked{
-    background:#22C55E !important;
-    border-color:#22C55E !important;
-}
-
-.form-check-input:focus{
-    box-shadow:none !important;
-}
-
-/* Edit Button */
-
-.edit-btn{
-    color:#2563EB;
-    font-weight:600;
-    border:none;
-    background:none;
-}
-
-.edit-btn:hover{
-    color:#1D4ED8;
-}
-
-/* Search */
-
-.user-search{
-    max-width:320px;
-}
-
-/* Message */
-
-.alert{
-    border-radius:10px;
-}
-
-/* ===========================
-   COMPANY TABLE
-=========================== */
-
-.table {
-    margin-bottom: 0;
-}
+TEXT = "#111827"
+TEXT_LIGHT = "#6B7280"
 
-.table thead th {
-    background: #F8FAFC;
-    border-bottom: 2px solid #E5E7EB;
-    color: #374151;
-    font-weight: 600;
-    padding: 14px 18px;
-}
+BACKGROUND = "#F8FAFC"
+WHITE = "#FFFFFF"
 
-.table tbody td {
-    padding: 16px 18px;
-    vertical-align: middle;
-}
+BORDER = "#E5E7EB"
 
-.table tbody tr:hover {
-    background: #F9FAFB;
-}
 
-.table-responsive {
-    border: 1px solid #E5E7EB;
-    border-radius: 12px;
-    overflow: hidden;
-}
-
-
-/* ---------- Card ---------- */
-
-.card{
-    border:none !important;
-    border-radius:16px !important;
-    box-shadow:0 2px 10px rgba(0,0,0,.06) !important;
-}
+# ==========================================================
+# NAV ITEM
+# ==========================================================
 
-/* ---------- Labels ---------- */
+def nav_item(title, href, active=False):
 
-label{
-    font-weight:600;
-    color:#374151;
-    margin-bottom:6px;
-}
+    return dcc.Link(
 
-/* ---------- Inputs ---------- */
-
-.form-control,
-.Select-control,
-.Select__control{
-    height:44px !important;
-    border-radius:10px !important;
-    border:1px solid #D1D5DB !important;
-    box-shadow:none !important;
-}
-
-/* ---------- Dropdown ---------- */
+        html.Div(
 
-.Select-menu-outer{
-    border-radius:10px;
-}
-
-/* ---------- Buttons ---------- */
-
-.btn-primary{
-    border-radius:10px !important;
-    height:44px;
-    font-weight:600;
-}
-
-/* ---------- Tables ---------- */
-
-.table{
-    margin-bottom:0;
-}
-
-.table thead th{
-    background:#F8FAFC;
-    color:#374151;
-    font-weight:700;
-    border-bottom:2px solid #E5E7EB;
-}
-
-.table td{
-    vertical-align:middle;
-    padding:14px;
-}
-
-.table tbody tr:hover{
-    background:#F9FAFB;
-}
-
-/* ---------- Responsive ---------- */
-
-.table-responsive{
-    overflow-x:auto;
-}
-
-.VirtualizedSelectFocusedOption{
-    background:#EEF4FF !important;
-}
-
-
-/* ==========================================
-   Mapping Page Dropdown Fix
-========================================== */
-
-.card{
-    overflow:hidden;
-}
-
-.table-responsive{
-    overflow-x:auto;
-    overflow-y:visible;
-}
-
-.Select{
-    position:relative;
-}
-
-.Select-menu-outer{
-    z-index:5000 !important;
-    border-radius:10px;
-}
-
-.VirtualizedSelectOption{
-    padding:10px 14px;
-}
-
-.VirtualizedSelectFocusedOption{
-    background:#EEF4FF !important;
-}
-
-
-/* ===========================
-   PORTAL PAGE DROPDOWN FIX
-=========================== */
-
-#portal-company-dropdown {
-    position: relative;
-    z-index: 1000;
-}
-
-#portal-company-dropdown .Select-menu-outer,
-#portal-company-dropdown .Select-menu,
-#portal-company-dropdown .Select__menu {
-    z-index: 99999 !important;
-}
-
-#portal-company-dropdown .Select-control,
-#portal-company-dropdown .Select__control {
-    position: relative;
-    z-index: 1000;
-}
-
-/* Allow dropdown to overflow card */
-
-.card,
-.card-body {
-    overflow: visible !important;
-}
+            title,
+
+            style={
+
+                "padding": "10px 22px",
+
+                "borderRadius": "10px",
+
+                "fontWeight": "600",
+
+                "fontSize": "15px",
+
+                "background": PRIMARY_LIGHT if active else "transparent",
+
+                "color": PRIMARY if active else TEXT,
+
+                "transition": ".2s",
+
+                "border": f"1px solid {PRIMARY}" if active else "1px solid transparent"
+
+            }
+
+        ),
+
+        href=href,
+
+        style={
+
+            "textDecoration": "none",
+
+            "margin": "0 8px"
+
+        }
+
+    )
+
+
+# ==========================================================
+# HEADER
+# ==========================================================
+
+def header(username="Administrator", role="Admin"):
+
+    return html.Div(
+
+        [
+
+            html.Div(
+
+                [
+
+                    html.Img(
+
+                        src="/assets/onex_software_logo.png",
+
+                        style={
+
+                            "height": "58px",
+
+                            "marginRight": "18px"
+
+                        }
+
+                    ),
+
+                    html.Div(
+
+                        [
+
+                            html.H3(
+
+                                "Onex AI Data Insight Platform",
+
+                                style={
+
+                                    "margin": 0,
+
+                                    "fontWeight": "700",
+
+                                    "fontSize": "28px",
+
+                                    "color": TEXT
+
+                                }
+
+                            ),
+
+                            html.Div(
+
+                                "Administration Console",
+
+                                style={
+
+                                    "color": TEXT_LIGHT,
+
+                                    "fontSize": "14px"
+
+                                }
+
+                            )
+
+                        ]
+
+                    )
+
+                ],
+
+                style={
+
+                    "display": "flex",
+
+                    "alignItems": "center"
+
+                }
+
+            ),
+
+            html.Div(
+
+                [
+
+                    html.Div(
+
+                        [
+
+                            html.Div(
+
+                                username,
+
+                                style={
+
+                                    "fontWeight": "700",
+
+                                    "fontSize": "15px"
+
+                                }
+
+                            ),
+
+                            html.Div(
+
+                                role,
+
+                                style={
+
+                                    "fontSize": "13px",
+
+                                    "color": TEXT_LIGHT
+
+                                }
+
+                            )
+
+                        ],
+
+                        style={
+
+                            "textAlign": "right",
+
+                            "marginRight": "20px"
+
+                        }
+
+                    ),
+
+                    dbc.Button(
+
+                        "Logout",
+
+                        id="btn-admin-logout",
+
+                        color="danger",
+
+                        outline=True,
+
+                        size="sm",
+
+                        style={
+
+                            "borderRadius": "10px",
+
+                            "padding": "8px 20px"
+
+                        }
+
+                    )
+
+                ],
+
+                style={
+
+                    "display": "flex",
+
+                    "alignItems": "center"
+
+                }
+
+            )
+
+        ],
+
+        style={
+
+            "display": "flex",
+
+            "justifyContent": "space-between",
+
+            "alignItems": "center",
+
+            "padding": "22px 42px",
+
+            "background": WHITE,
+
+            "borderBottom": f"1px solid {BORDER}"
+
+        }
+
+    )
+
+
+# ==========================================================
+# ADMIN LAYOUT
+# ==========================================================
+
+def admin_layout(
+    title,
+    body,
+    active="home",
+    username="Administrator",
+    role="Admin",
+):
+
+    # Support both:
+    # body = [...]
+    # body = html.Div(...)
+    if isinstance(body, list):
+        page_children = body
+    else:
+        page_children = [body]
+
+    return html.Div(
+
+        [
+
+            header(
+                username=username,
+                role=role
+            ),
+
+            # ==================================================
+            # NAVIGATION
+            # ==================================================
+
+            html.Div(
+
+                [
+
+                    nav_item(
+                        "Home",
+                        "/admin",
+                        active == "home"
+                    ),
+
+                    nav_item(
+                        "Users",
+                        "/users",
+                        active == "users"
+                    ),
+
+                    nav_item(
+                        "Companies",
+                        "/companies",
+                        active == "companies"
+                    ),
+
+                    nav_item(
+                        "Mapping",
+                        "/mapping",
+                        active == "mapping"
+                    ),
+
+                    nav_item(
+                        "Portal",
+                        "/portal",
+                        active == "portal"
+                    )
+
+                ],
+
+                style={
+
+                    "display": "flex",
+                    "justifyContent": "center",
+                    "alignItems": "center",
+                    "padding": "18px 0",
+                    "background": WHITE,
+                    "borderBottom": f"1px solid {BORDER}"
+
+                }
+
+            ),
+
+            # ==================================================
+            # PAGE CONTENT
+            # ==================================================
+
+            html.Div(
+
+                [
+
+                    html.H2(
+
+                        title,
+
+                        style={
+
+                            "fontWeight": "700",
+                            "fontSize": "34px",
+                            "marginBottom": "8px",
+                            "color": TEXT
+
+                        }
+
+                    ),
+
+                    html.P(
+
+                        "Manage your administration tasks from one place.",
+
+                        style={
+
+                            "color": TEXT_LIGHT,
+                            "marginBottom": "35px"
+
+                        }
+
+                    ),
+
+                    *page_children
+
+                ],
+
+                style={
+
+                    "maxWidth": "1350px",
+                    "margin": "40px auto",
+                    "padding": "0 24px",
+                    "minHeight": "calc(100vh - 170px)"
+
+                }
+
+            )
+
+        ],
+
+        style={
+
+            "background": BACKGROUND,
+            "minHeight": "100vh"
+
+        }
+
+    )
