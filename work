@@ -1,78 +1,60 @@
-
-from dash import Input, Output, State, dash, html
-from dash.exceptions import PreventUpdate
-
-from core.db_connector import get_session
-from core.app_db import Company
-
-
-def register_portal_callbacks(app):
-
-    # --------------------------------------------------
-    # Load Companies
-    # --------------------------------------------------
-
-    @app.callback(
-        Output("portal-company-dropdown", "options"),
-        Input("url", "pathname"),
-        prevent_initial_call=False
-    )
-    def load_companies(pathname):
-
-        if pathname != "/portal":
-            raise PreventUpdate
-
-        session = get_session()
-
-        try:
-
-            companies = (
-                session.query(Company)
-                .filter(Company.is_active == True)
-                .order_by(Company.company_name)
-                .all()
-            )
-
-            return [
-                {
-                    "label": c.company_name,
-                    "value": c.company_id
-                }
-                for c in companies
-            ]
-
-        finally:
-            session.close()
-
-
-    # --------------------------------------------------
-    # Open Workspace
-    # --------------------------------------------------
-
-    @app.callback(
-        Output("session-state", "data", allow_duplicate=True),
-        Output("url", "pathname", allow_duplicate=True),
-
-        Input("btn-open-company", "n_clicks"),
-
-        State("portal-company-dropdown", "value"),
-        State("session-state", "data"),
-
+ @app.callback(
+        Output('save-dashboard-status', 'children'),
+        Input('btn-save-dashboard', 'n_clicks'),
+        State('save-dashboard-name', 'value'),
+        State('store-kpi-selections-dashboard', 'data'),
+        State('store-filter-selections-dashboard', 'data'),
+        State('store-confirmed-dtypes-dashboard', 'data'),
+        State('store-ai-suggestions', 'data'),
+        State('store-upload-id', 'data'),
+        State('session-state', 'data'),
         prevent_initial_call=True
     )
-    def open_workspace(n_clicks, company_id, session_data):
+    def save_dashboard_callback(n_clicks,dashboard_name,kpis,filters,dtypes,ai_suggestions,upload_id,session_data):
 
-        if not n_clicks:
-            raise PreventUpdate
-
-        if company_id is None:
-            raise PreventUpdate
+        if not dashboard_name:
+            return "Please enter dashboard name"
 
         session_data = session_data or {}
+        user_id = session_data.get("user_id")
+        company_id = session_data.get("company_id")
+        # user_id = (session_data or {}).get("user_id")
+        
+        if not company_id:
+            return "Company not selected"
 
-        # Store selected company
-        session_data["company_id"] = company_id
+        if not user_id:
+            return "User session not found"
 
-        print("Selected Company:", company_id)
+        # manifest = CacheManager.load_manifest()
+        # upload_id = manifest.get("active_upload_id")
 
-        return session_data, "/dashboard"
+        if not upload_id:
+            return "No active upload found"
+
+        print("UPLOAD_ID =", upload_id)
+        print("TYPE=", type(upload_id))
+        print("SESSION_DATA =", session_data)
+        
+        print("SAVE BUTTON CLICKED")
+        print("dashboard_name =", dashboard_name)
+        print("user_id =", user_id)
+        print("upload_id =", upload_id)
+        
+        result = save_dashboard(
+            dashboard_name,
+            user_id,
+            company_id,
+            upload_id,
+            kpis or [],
+            filters or [],
+            dtypes or {},
+            ai_suggestions or {}
+        )
+        
+        print("RESULT =", result)
+        
+        if result.get("success"):
+            return f" Dashboard '{dashboard_name}' saved successfully"
+
+        return f" {result.get('message', 'Save failed')}"
