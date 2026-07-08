@@ -1,60 +1,138 @@
- @app.callback(
-        Output('save-dashboard-status', 'children'),
-        Input('btn-save-dashboard', 'n_clicks'),
-        State('save-dashboard-name', 'value'),
-        State('store-kpi-selections-dashboard', 'data'),
-        State('store-filter-selections-dashboard', 'data'),
-        State('store-confirmed-dtypes-dashboard', 'data'),
-        State('store-ai-suggestions', 'data'),
-        State('store-upload-id', 'data'),
-        State('session-state', 'data'),
-        prevent_initial_call=True
-    )
-    def save_dashboard_callback(n_clicks,dashboard_name,kpis,filters,dtypes,ai_suggestions,upload_id,session_data):
+"""
+Save and load dashboard configurations using DATABASE (ORM)
+"""
 
-        if not dashboard_name:
-            return "Please enter dashboard name"
+from core.app_db import SavedDashboard
+from core.db_connector import get_session
+from datetime import datetime
 
-        session_data = session_data or {}
-        user_id = session_data.get("user_id")
-        company_id = session_data.get("company_id")
-        # user_id = (session_data or {}).get("user_id")
-        
-        if not company_id:
-            return "Company not selected"
 
-        if not user_id:
-            return "User session not found"
+# ✅ SAVE to database
+def save(name: str, user_id: int, company_id: int, upload_id: int,
+         kpi_selections: list, filter_selections: list,
+         confirmed_dtypes: dict, ai_suggestions: dict = None):
 
-        # manifest = CacheManager.load_manifest()
-        # upload_id = manifest.get("active_upload_id")
+    session = get_session()
 
-        if not upload_id:
-            return "No active upload found"
-
-        print("UPLOAD_ID =", upload_id)
-        print("TYPE=", type(upload_id))
-        print("SESSION_DATA =", session_data)
-        
-        print("SAVE BUTTON CLICKED")
-        print("dashboard_name =", dashboard_name)
-        print("user_id =", user_id)
-        print("upload_id =", upload_id)
-        
-        result = save_dashboard(
-            dashboard_name,
-            user_id,
-            company_id,
-            upload_id,
-            kpis or [],
-            filters or [],
-            dtypes or {},
-            ai_suggestions or {}
+    try:
+        print("CREATING DASHBOARD OBJECT")
+        dashboard = SavedDashboard(
+            user_id=user_id,
+            company_id=company_id,
+            upload_id=upload_id,
+            dashboard_name=name,
+            kpi_selections=kpi_selections or [],
+            filter_selections=filter_selections or [],
+            confirmed_dtypes=confirmed_dtypes or {},
+            ai_suggestions=ai_suggestions or {},
+            created_at=datetime.utcnow()
         )
-        
-        print("RESULT =", result)
-        
-        if result.get("success"):
-            return f" Dashboard '{dashboard_name}' saved successfully"
+        print("ADDING TO SESSION")
+        session.add(dashboard)
+        print("COMMITING")
+        session.commit()
+        print("COMMIT SUCCESS")
+        print(f"[OK] Dashboard saved: {name}")
 
-        return f" {result.get('message', 'Save failed')}"
+        return {
+            "success": True,
+            "dashboard_id": dashboard.dashboard_id
+        }
+
+    except Exception as e:
+        
+        print("EXCEPTION TYPE =", type(e))
+        print("EXCEPTION =", str(e))
+        session.rollback()
+        print(f"[ERROR] save dashboard: {e}")
+        return {"success": False, "message": "Failed to save dashboard"}
+
+    finally:
+        session.close()
+
+
+# ✅ LIST dashboards
+def list_saved(user_id: int):
+    session = get_session()
+
+    try:
+        dashboards = (
+            session.query(SavedDashboard)
+            .filter_by(user_id=user_id)
+            .order_by(SavedDashboard.created_at.desc())
+            .all()
+        )
+
+        return [
+            {
+                "dashboard_id": d.dashboard_id,
+                "name": d.dashboard_name,
+                "created_at": d.created_at.isoformat() if d.created_at else None
+            }
+            for d in dashboards
+        ]
+
+    except Exception as e:
+        print(f"[ERROR] list dashboards: {e}")
+        return []
+
+    finally:
+        session.close()
+
+
+# ✅ LOAD dashboard
+def load(dashboard_id: int, user_id: int):
+    session = get_session()
+
+    try:
+        dashboard = session.query(SavedDashboard).filter_by(
+            dashboard_id=dashboard_id,
+            user_id=user_id
+        ).first()
+
+        if not dashboard:
+            return None
+
+        return {
+            "name": dashboard.dashboard_name,
+            "kpi_selections": dashboard.kpi_selections,
+            "filter_selections": dashboard.filter_selections,
+            "confirmed_dtypes": dashboard.confirmed_dtypes,
+            "ai_suggestions": dashboard.ai_suggestions,
+        }
+
+    except Exception as e:
+        print(f"[ERROR] load dashboard: {e}")
+        return None
+
+    finally:
+        session.close()
+
+
+# ✅ DELETE dashboard
+def delete(dashboard_id: int, user_id: int):
+    session = get_session()
+
+    try:
+        dashboard = session.query(SavedDashboard).filter_by(
+            dashboard_id=dashboard_id,
+            user_id=user_id
+        ).first()
+
+        if not dashboard:
+            return False
+
+        session.delete(dashboard)
+        session.commit()
+
+        print(f"[OK] Dashboard deleted: {dashboard_id}")
+
+        return True
+
+    except Exception as e:
+        session.rollback()
+        print(f"[ERROR] delete dashboard: {e}")
+        return False
+
+    finally:
+        session.close()
