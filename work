@@ -1,19 +1,4 @@
 
-"""
-Intelligent Data Dashboard - Multi-Page Architecture with PostgreSQL Authentication
-====================================================================================
-Phases:
-1. Authentication - PostgreSQL user database with secure session management
-2. Code Refactoring - Modular architecture
-3. Intelligence Layer - Auto-analysis & recommendations
-4. LLM Integration - LMStudio + Claude fallback
-5. User Interaction - Multi-page flow with user customization
-
-Usage:
-    python dashboard.py
-    Open http://0.0.0.0:8050
-"""
-
 import os
 import json
 import pickle
@@ -75,24 +60,6 @@ from callbacks.dashboard_callbacks import register_dashboard_callbacks
 from core.dashboard_store import save as save_dashboard, list_saved, load as load_dashboard, delete as delete_dashboard
 from core import db_connector
 from core import query_builder
-
-# ═══════════════════════════════════════════════════════════════
-# INITIALIZE AUTHENTICATOR
-# ═══════════════════════════════════════════════════════════════
-
-# print("\n" + "="*70)
-# print("[STARTUP] Initializing AI-INSIGHT Dashboard")
-# print("="*70)
-
-# authenticator = None
-# try:
-#     authenticator = PostgreSQLAuthenticator()
-#     print("[OK] PostgreSQL authenticator initialized - ALL USERS STORED IN DATABASE")
-# except Exception as e:
-#     print(f"[CRITICAL ERROR] Failed to initialize authenticator: {e}")
-#     print("[CRITICAL ERROR] Dashboard cannot start without database connection")
-#     raise
-
 
 # ═══════════════════════════════════════════════════════════════
 # PHASE 1: DATA LOADING (Only after authentication)
@@ -1264,40 +1231,13 @@ def load_table_data(table):
 #         db_type=db_type
 #         )
 
-
 #     return df.to_json(date_format='iso', orient='split')
-
-
 # ═══════════════════════════════════════════════════════════════
 # REGISTER DASHBOARD CALLBACKS
 # ═══════════════════════════════════════════════════════════════
-
 register_dashboard_callbacks(app, get_cached_dataframe, chart_analyzer)
 register_users_callbacks(app)  # ✅ Register user management callbacks
 register_portal_callbacks(app)  # ✅ Register portal callbacks
 
 
-# ═══════════════════════════════════════════════════════════════
-# RUN
-# ═══════════════════════════════════════════════════════════════
 
-if __name__ == "__main__":
-    # print("\n" + "="*70)
-    # print("[READY] AI-INSIGHT Dashboard ready!")
-    # print("="*70)
-    # print("\n📍 Database: PostgreSQL")
-    # print("   Host: 192.168.202.114:5432")
-    # print("   Database: ai_insight")
-    # print("\n🔐 Authentication: PostgreSQL-backed")
-    # print("   New users register → saved to database")
-    # print("   Login validates against database")
-    # print("   Session tokens with 7-day expiration")
-    # print("   Account lockout after 5 failed attempts")
-    # print("\n🎨 UI Features:")
-    # print("   • Auth page: NO navbar (full-screen login/signup)")
-    # print("   • After login: Navbar appears with navigation steps")
-    # print("   • Logout returns to auth page")
-    # print("\n🚀 Starting Dashboard at http://0.0.0.0:8050")
-    # print("="*70 + "\n")
-    
-    app.run(host="0.0.0.0", port=8050, debug=True)
