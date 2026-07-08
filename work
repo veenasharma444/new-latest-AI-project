@@ -1,155 +1,392 @@
 from dash import html, dcc
 import dash_bootstrap_components as dbc
-from components.admin_layout import admin_layout
+
+# ==========================================================
+# COLORS
+# ==========================================================
+
+PRIMARY = "#2563EB"
+PRIMARY_LIGHT = "#EFF6FF"
+
+TEXT = "#111827"
+TEXT_LIGHT = "#6B7280"
+
+BACKGROUND = "#F8FAFC"
+WHITE = "#FFFFFF"
+
+BORDER = "#E5E7EB"
 
 
-CARD_STYLE = {
-    "backgroundColor": "white",
-    "border": "1px solid #E5E7EB",
-    "borderRadius": "16px",
-    "padding": "32px",
-    "height": "210px",
-    "cursor": "pointer",
-    "boxShadow": "0 3px 10px rgba(0,0,0,.08)",
-    "transition": "all .2s ease"
-}
+# ==========================================================
+# NAV ITEM
+# ==========================================================
+
+def nav_item(title, href, active=False):
+
+    return dcc.Link(
+
+        html.Div(
+
+            title,
+
+            style={
+
+                "padding": "10px 22px",
+
+                "borderRadius": "10px",
+
+                "fontWeight": "600",
+
+                "fontSize": "15px",
+
+                "background": PRIMARY_LIGHT if active else "transparent",
+
+                "color": PRIMARY if active else TEXT,
+
+                "transition": ".2s",
+
+                "border": f"1px solid {PRIMARY}" if active else "1px solid transparent"
+
+            }
+
+        ),
+
+        href=href,
+
+        style={
+
+            "textDecoration": "none",
+
+            "margin": "0 8px"
+
+        }
+
+    )
 
 
-def admin_card(icon, title, description, href):
+# ==========================================================
+# HEADER
+# ==========================================================
 
-    return dbc.Col(
+def header(username="Administrator", role="Admin"):
 
-        dcc.Link(
+    return html.Div(
 
-            dbc.Card(
+        [
 
-                dbc.CardBody(
+            html.Div(
 
-                    [
+                [
 
-                        html.Div(
+                    html.Img(
 
-                            icon,
+                        src="/assets/onex_software_logo.png",
 
-                            style={
-                                "fontSize": "46px",
-                                "marginBottom": "18px"
-                            }
+                        style={
 
-                        ),
+                            "height": "58px",
 
-                        html.H4(
+                            "marginRight": "18px"
 
-                            title,
+                        }
 
-                            style={
-                                "fontWeight": "700",
-                                "marginBottom": "10px"
-                            }
+                    ),
 
-                        ),
+                    html.Div(
 
-                        html.P(
+                        [
 
-                            description,
+                            html.H3(
 
-                            style={
-                                "color": "#6B7280",
-                                "fontSize": "15px"
-                            }
+                                "Onex AI Data Insight Platform",
 
-                        )
+                                style={
 
-                    ]
+                                    "margin": 0,
 
-                ),
+                                    "fontWeight": "700",
 
-                style=CARD_STYLE
+                                    "fontSize": "28px",
+
+                                    "color": TEXT
+
+                                }
+
+                            ),
+
+                            html.Div(
+
+                                "Administration Console",
+
+                                style={
+
+                                    "color": TEXT_LIGHT,
+
+                                    "fontSize": "14px"
+
+                                }
+
+                            )
+
+                        ]
+
+                    )
+
+                ],
+
+                style={
+
+                    "display": "flex",
+
+                    "alignItems": "center"
+
+                }
 
             ),
 
-            href=href,
+            html.Div(
 
-            style={
-                "textDecoration": "none",
-                "color": "inherit"
-            }
+                [
 
-        ),
+                    html.Div(
 
-        lg=6,
-        xl=3,
-        md=6,
-        sm=12,
+                        [
 
-        className="mb-4"
+                            html.Div(
+
+                                username,
+
+                                style={
+
+                                    "fontWeight": "700",
+
+                                    "fontSize": "15px"
+
+                                }
+
+                            ),
+
+                            html.Div(
+
+                                role,
+
+                                style={
+
+                                    "fontSize": "13px",
+
+                                    "color": TEXT_LIGHT
+
+                                }
+
+                            )
+
+                        ],
+
+                        style={
+
+                            "textAlign": "right",
+
+                            "marginRight": "20px"
+
+                        }
+
+                    ),
+
+                    dbc.Button(
+
+                        "Logout",
+
+                        id="btn-admin-logout",
+
+                        color="danger",
+
+                        outline=True,
+
+                        size="sm",
+
+                        style={
+
+                            "borderRadius": "10px",
+
+                            "padding": "8px 20px"
+
+                        }
+
+                    )
+
+                ],
+
+                style={
+
+                    "display": "flex",
+
+                    "alignItems": "center"
+
+                }
+
+            )
+
+        ],
+
+        style={
+
+            "display": "flex",
+
+            "justifyContent": "space-between",
+
+            "alignItems": "center",
+
+            "padding": "22px 42px",
+
+            "background": WHITE,
+
+            "borderBottom": f"1px solid {BORDER}"
+
+        }
 
     )
 
 
-def layout():
+# ==========================================================
+# ADMIN LAYOUT
+# ==========================================================
 
-    body = [
+def admin_layout(
+    title,
+    body,
+    active="home",
+    username="Administrator",
+    role="Admin",
+):
 
-        html.P(
+    # Support both:
+    # body = [...]
+    # body = html.Div(...)
+    if isinstance(body, list):
+        page_children = body
+    else:
+        page_children = [body]
 
-            "Welcome to the administration console. Select a module below.",
+    return html.Div(
 
-            style={
-                "color": "#6B7280",
-                "fontSize": "16px",
-                "marginBottom": "35px"
-            }
+        [
 
-        ),
+            header(
+                username=username,
+                role=role
+            ),
 
-        dbc.Row(
+            # ==================================================
+            # NAVIGATION
+            # ==================================================
 
-            [
+            html.Div(
 
-                admin_card(
-                    "👤",
-                    "Users",
-                    "Create and manage users.",
-                    "/users"
-                ),
+                [
 
-                admin_card(
-                    "🏢",
-                    "Companies",
-                    "Create and manage companies.",
-                    "/companies"
-                ),
+                    nav_item(
+                        "Home",
+                        "/admin",
+                        active == "home"
+                    ),
 
-                admin_card(
-                    "🔗",
-                    "Mapping",
-                    "Assign companies to users.",
-                    "/mapping"
-                ),
+                    nav_item(
+                        "Users",
+                        "/users",
+                        active == "users"
+                    ),
 
-                admin_card(
-                    "🌐",
-                    "Portal",
-                    "Open company workspace.",
-                    "/portal"
-                )
+                    nav_item(
+                        "Companies",
+                        "/companies",
+                        active == "companies"
+                    ),
 
-            ],
+                    nav_item(
+                        "Mapping",
+                        "/mapping",
+                        active == "mapping"
+                    ),
 
-            className="g-4"
+                    nav_item(
+                        "Portal",
+                        "/portal",
+                        active == "portal"
+                    )
 
-        )
+                ],
 
-    ]
+                style={
 
-    return admin_layout(
+                    "display": "flex",
+                    "justifyContent": "center",
+                    "alignItems": "center",
+                    "padding": "18px 0",
+                    "background": WHITE,
+                    "borderBottom": f"1px solid {BORDER}"
 
-        title="Admin Dashboard",
+                }
 
-        body=body,
+            ),
 
-        active="home"
+            # ==================================================
+            # PAGE CONTENT
+            # ==================================================
+
+            html.Div(
+
+                [
+
+                    html.H2(
+
+                        title,
+
+                        style={
+
+                            "fontWeight": "700",
+                            "fontSize": "34px",
+                            "marginBottom": "8px",
+                            "color": TEXT
+
+                        }
+
+                    ),
+
+                    html.P(
+
+                        "Manage your administration tasks from one place.",
+
+                        style={
+
+                            "color": TEXT_LIGHT,
+                            "marginBottom": "35px"
+
+                        }
+
+                    ),
+
+                    *page_children
+
+                ],
+
+                style={
+
+                    "maxWidth": "1350px",
+                    "margin": "40px auto",
+                    "padding": "0 24px",
+                    "minHeight": "calc(100vh - 170px)"
+
+                }
+
+            )
+
+        ],
+
+        style={
+
+            "background": BACKGROUND,
+            "minHeight": "100vh"
+
+        }
 
     )
-
