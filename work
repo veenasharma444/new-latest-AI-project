@@ -1,392 +1,78 @@
-from dash import html, dcc
-import dash_bootstrap_components as dbc
 
-# ==========================================================
-# COLORS
-# ==========================================================
+from dash import Input, Output, State, dash, html
+from dash.exceptions import PreventUpdate
 
-PRIMARY = "#2563EB"
-PRIMARY_LIGHT = "#EFF6FF"
-
-TEXT = "#111827"
-TEXT_LIGHT = "#6B7280"
-
-BACKGROUND = "#F8FAFC"
-WHITE = "#FFFFFF"
-
-BORDER = "#E5E7EB"
+from core.db_connector import get_session
+from core.app_db import Company
 
 
-# ==========================================================
-# NAV ITEM
-# ==========================================================
+def register_portal_callbacks(app):
 
-def nav_item(title, href, active=False):
+    # --------------------------------------------------
+    # Load Companies
+    # --------------------------------------------------
 
-    return dcc.Link(
-
-        html.Div(
-
-            title,
-
-            style={
-
-                "padding": "10px 22px",
-
-                "borderRadius": "10px",
-
-                "fontWeight": "600",
-
-                "fontSize": "15px",
-
-                "background": PRIMARY_LIGHT if active else "transparent",
-
-                "color": PRIMARY if active else TEXT,
-
-                "transition": ".2s",
-
-                "border": f"1px solid {PRIMARY}" if active else "1px solid transparent"
-
-            }
-
-        ),
-
-        href=href,
-
-        style={
-
-            "textDecoration": "none",
-
-            "margin": "0 8px"
-
-        }
-
+    @app.callback(
+        Output("portal-company-dropdown", "options"),
+        Input("url", "pathname"),
+        prevent_initial_call=False
     )
+    def load_companies(pathname):
 
+        if pathname != "/portal":
+            raise PreventUpdate
 
-# ==========================================================
-# HEADER
-# ==========================================================
+        session = get_session()
 
-def header(username="Administrator", role="Admin"):
+        try:
 
-    return html.Div(
-
-        [
-
-            html.Div(
-
-                [
-
-                    html.Img(
-
-                        src="/assets/onex_software_logo.png",
-
-                        style={
-
-                            "height": "58px",
-
-                            "marginRight": "18px"
-
-                        }
-
-                    ),
-
-                    html.Div(
-
-                        [
-
-                            html.H3(
-
-                                "Onex AI Data Insight Platform",
-
-                                style={
-
-                                    "margin": 0,
-
-                                    "fontWeight": "700",
-
-                                    "fontSize": "28px",
-
-                                    "color": TEXT
-
-                                }
-
-                            ),
-
-                            html.Div(
-
-                                "Administration Console",
-
-                                style={
-
-                                    "color": TEXT_LIGHT,
-
-                                    "fontSize": "14px"
-
-                                }
-
-                            )
-
-                        ]
-
-                    )
-
-                ],
-
-                style={
-
-                    "display": "flex",
-
-                    "alignItems": "center"
-
-                }
-
-            ),
-
-            html.Div(
-
-                [
-
-                    html.Div(
-
-                        [
-
-                            html.Div(
-
-                                username,
-
-                                style={
-
-                                    "fontWeight": "700",
-
-                                    "fontSize": "15px"
-
-                                }
-
-                            ),
-
-                            html.Div(
-
-                                role,
-
-                                style={
-
-                                    "fontSize": "13px",
-
-                                    "color": TEXT_LIGHT
-
-                                }
-
-                            )
-
-                        ],
-
-                        style={
-
-                            "textAlign": "right",
-
-                            "marginRight": "20px"
-
-                        }
-
-                    ),
-
-                    dbc.Button(
-
-                        "Logout",
-
-                        id="btn-admin-logout",
-
-                        color="danger",
-
-                        outline=True,
-
-                        size="sm",
-
-                        style={
-
-                            "borderRadius": "10px",
-
-                            "padding": "8px 20px"
-
-                        }
-
-                    )
-
-                ],
-
-                style={
-
-                    "display": "flex",
-
-                    "alignItems": "center"
-
-                }
-
+            companies = (
+                session.query(Company)
+                .filter(Company.is_active == True)
+                .order_by(Company.company_name)
+                .all()
             )
 
-        ],
-
-        style={
-
-            "display": "flex",
-
-            "justifyContent": "space-between",
-
-            "alignItems": "center",
-
-            "padding": "22px 42px",
-
-            "background": WHITE,
-
-            "borderBottom": f"1px solid {BORDER}"
-
-        }
-
-    )
-
-
-# ==========================================================
-# ADMIN LAYOUT
-# ==========================================================
-
-def admin_layout(
-    title,
-    body,
-    active="home",
-    username="Administrator",
-    role="Admin",
-):
-
-    # Support both:
-    # body = [...]
-    # body = html.Div(...)
-    if isinstance(body, list):
-        page_children = body
-    else:
-        page_children = [body]
-
-    return html.Div(
-
-        [
-
-            header(
-                username=username,
-                role=role
-            ),
-
-            # ==================================================
-            # NAVIGATION
-            # ==================================================
-
-            html.Div(
-
-                [
-
-                    nav_item(
-                        "Home",
-                        "/admin",
-                        active == "home"
-                    ),
-
-                    nav_item(
-                        "Users",
-                        "/users",
-                        active == "users"
-                    ),
-
-                    nav_item(
-                        "Companies",
-                        "/companies",
-                        active == "companies"
-                    ),
-
-                    nav_item(
-                        "Mapping",
-                        "/mapping",
-                        active == "mapping"
-                    ),
-
-                    nav_item(
-                        "Portal",
-                        "/portal",
-                        active == "portal"
-                    )
-
-                ],
-
-                style={
-
-                    "display": "flex",
-                    "justifyContent": "center",
-                    "alignItems": "center",
-                    "padding": "18px 0",
-                    "background": WHITE,
-                    "borderBottom": f"1px solid {BORDER}"
-
+            return [
+                {
+                    "label": c.company_name,
+                    "value": c.company_id
                 }
+                for c in companies
+            ]
 
-            ),
+        finally:
+            session.close()
 
-            # ==================================================
-            # PAGE CONTENT
-            # ==================================================
 
-            html.Div(
+    # --------------------------------------------------
+    # Open Workspace
+    # --------------------------------------------------
 
-                [
+    @app.callback(
+        Output("session-state", "data", allow_duplicate=True),
+        Output("url", "pathname", allow_duplicate=True),
 
-                    html.H2(
+        Input("btn-open-company", "n_clicks"),
 
-                        title,
+        State("portal-company-dropdown", "value"),
+        State("session-state", "data"),
 
-                        style={
-
-                            "fontWeight": "700",
-                            "fontSize": "34px",
-                            "marginBottom": "8px",
-                            "color": TEXT
-
-                        }
-
-                    ),
-
-                    html.P(
-
-                        "Manage your administration tasks from one place.",
-
-                        style={
-
-                            "color": TEXT_LIGHT,
-                            "marginBottom": "35px"
-
-                        }
-
-                    ),
-
-                    *page_children
-
-                ],
-
-                style={
-
-                    "maxWidth": "1350px",
-                    "margin": "40px auto",
-                    "padding": "0 24px",
-                    "minHeight": "calc(100vh - 170px)"
-
-                }
-
-            )
-
-        ],
-
-        style={
-
-            "background": BACKGROUND,
-            "minHeight": "100vh"
-
-        }
-
+        prevent_initial_call=True
     )
+    def open_workspace(n_clicks, company_id, session_data):
+
+        if not n_clicks:
+            raise PreventUpdate
+
+        if company_id is None:
+            raise PreventUpdate
+
+        session_data = session_data or {}
+
+        # Store selected company
+        session_data["company_id"] = company_id
+
+        print("Selected Company:", company_id)
+
+        return session_data, "/dashboard"
