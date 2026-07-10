@@ -1,87 +1,44 @@
-llm_config = None
-llm_config_obj = None
-llm_analyzer = None
-provider = None
-dashboard_config = auto_config
+URL and key for litellm (only for testing purpose)
 
-try:
-    config_paths = [
-        "llm_config.json",
-        os.path.join(os.path.dirname(__file__), "llm_config.json"),
-        os.path.join(os.getcwd(), "llm_config.json"),
-    ]
+Base URL: https://litellm.osourceglobal.com:/v1
+key: sk-6A6m0Q1jvBS3pIXpEPVNzA (only for testing)
+Models : qwen3.6:35b-a3b , qwen2.5-14b 
 
-    llm_config_path = None
-    for path in config_paths:
-        if os.path.exists(path):
-            llm_config_path = path
-            break
+PFA the sample to call this in python.
 
-    if llm_config_path:
-        with open(llm_config_path) as f:
-            llm_config = json.load(f)
-        print(f"\n[OK] Found llm_config.json at: {llm_config_path}")
-        print(f"[OK] Loaded LLM config: provider={llm_config.get('provider')}")
+async def _call_ollama(prompt: str, model: Optional[str] = None) -> str:
+    """Stream from Ollama and return the full response string with timing logs."""
 
-        config_obj = DEFAULT_CONFIG
-        if llm_config.get('provider'):
-            config_obj.provider = llm_config['provider']
-        if llm_config.get('model_name'):
-            config_obj.model_name = llm_config['model_name']
-        if llm_config.get('base_url'):
-            config_obj.base_url = llm_config['base_url']
-        if llm_config.get('api_key'):
-            config_obj.api_key = llm_config['api_key']
-        if llm_config.get('include_sample_data') is not None:
-            config_obj.include_sample_data = llm_config['include_sample_data']
+    payload = {
+        "model": "qwen3.6:35b-a3b",
+        "messages": [
+            {"role": "user", "content": prompt}
+        ],
+        "stream": True
+    }
 
-        llm_config_obj = config_obj
+    print(f"[DEBUG] Payload: {payload}")
 
-        print("\n[INFO] Phase 3: Analyzing with LLM...")
-        print(f"[INFO] Using provider: {config_obj.provider} at {config_obj.base_url}")
+    full_response: list[str] = []
 
-        try:
-            print("[INFO] Creating LLM provider and analyzer...")
-            provider = LLMFactory.create(config_obj)
-            llm_analyzer = LLMAnalyzer(provider, config_obj)
-            print("[OK] LLM analyzer created successfully")
+    headers = {
+    "Content-Type": "application/json",
+    "api-key": OLLAMA_API_KEY # Pass your key here,
+}
 
-            user_context = f"Dataset contains {len(df):,} records with {len(profiles)} columns."
+    # ---- Timing markers ----
+    start_time = time.perf_counter()
+    first_token_time = None
+    chunk_count = 0
 
-            print(f"[INFO] Running startup LLM analysis...")
-
-            try:
-                llm_config_result = llm_analyzer.analyze(df, profiles, user_context)
-                if llm_config_result:
-                    dashboard_config = llm_config_result
-                    print("[OK] LLM analysis successful")
-                else:
-                    dashboard_config = auto_config
-                    print("[WARN] LLM returned empty result")
-            except (TimeoutError, ConnectionError):
-                print(f"[WARN] LLM analysis timeout")
-                dashboard_config = auto_config
-            except Exception as e:
-                print(f"[WARN] LLM analysis failed: {type(e).__name__}")
-                dashboard_config = auto_config
-
-        except Exception as e:
-            print(f"[WARN] LLM initialization failed: {type(e).__name__}")
-            dashboard_config = auto_config
-            llm_analyzer = None
-
-    else:
-        dashboard_config = auto_config
-        print("\n[INFO] llm_config.json not found - using auto-layout only")
-
-except Exception as e:
-    print(f"[ERROR] LLM initialization error: {e}")
-    dashboard_config = auto_config
-
-chart_analyzer = None
-if llm_analyzer is not None and provider is not None:
     try:
-        chart_analyzer = ChartAnalyzer(provider, llm_config_obj)
-        print("[OK] Chart analyzer initialized")
-    except Exception as e:
-        print(f"[WARN] Chart analyzer initialization failed: {e}")
+        async with httpx.AsyncClient(timeout=600.0) as client:
+            request_start = time.perf_counter()
+
+            async with client.stream(
+                "POST",
+                f"{OLLAMA_BASE_URL}/chat/completions", # DONT FORGET TO ADD THIS 
+                json=payload,
+                headers=headers
+            )
+
