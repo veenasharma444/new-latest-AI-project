@@ -1,218 +1,133 @@
 
-from dash import html, dcc
-import dash_bootstrap_components as dbc
+def make_navbar(session_data, pathname):
+
+    username = session_data.get("username", "User")
+    role_id = session_data.get("role_id")
+
+    role_name = "Admin" if role_id == 1 else "User"
+
+    #  helper → active highlight (NO icons now)
+    def nav_item(label, href):
+        active = pathname == href
+
+        return dcc.Link(
+            label,
+            href=href,
+            style={
+                'padding': '6px 12px',
+                'borderRadius': '6px',
+                'textDecoration': 'none',
+                'fontSize': '14px',
+                'fontWeight': '600',
+                'color': '#1A365D' if not active else 'white',
+                'backgroundColor': '#E2E8F0' if not active else '#2B6CB0',
+                'transition': 'all 0.2s'
+            }
+        )
 
 
-# ==========================================================
-# COLORS
-# ==========================================================
+    #  Role-based navigation 
+    if role_id == 1:  # Admin
+        nav_links = [
+            nav_item("Home", "/admin"),
+            nav_item("Users", "/users"),
+            nav_item("Companies", "/companies"),
+            nav_item("Mapping", "/mapping"),
+        ]
+    else:  # Regular User
+        
+        nav_links = [
+            nav_item("Upload", "/upload"),
+            nav_item("Data Review", "/data-review"),
+            nav_item("Config", "/config"),
+            nav_item("Dashboard", "/dashboard"),
+        ]
 
-PRIMARY = "#4F46E5"
-PRIMARY_DARK = "#312E81"
-LEFT_BG = "#2D2676"
-TEXT_LIGHT = "#D1D5DB"
-WHITE = "#FFFFFF"
+
+    # #  COMMON FLOW
+    # nav_links = [
+    #     nav_item("Upload", "/upload"),
+    #     nav_item("Data Review", "/data-review"),
+    #     nav_item("Config", "/config"),
+    #     nav_item("Dashboard", "/dashboard"),
+    # ]
+
+    # #  ADMIN EXTRA LINKS
+    # if role_id == 1:
+    #     nav_links += [
+    #         nav_item("Users", "/users"),
+    #         nav_item("Companies", "/companies"),
+    #         nav_item("Mapping", "/mapping"),
+    #     ]
 
 
-# ==========================================================
-# FEATURE CARD
-# ==========================================================
+    return html.Div([
 
-def feature_card(icon, title, subtitle):
-
-    return dbc.Card(
-
-        dbc.CardBody([
-
-            html.Div(
-                icon,
+        #  LEFT LOGO
+        html.Div([
+            html.Img(
+                src="/assets/onex_software_logo.png",
                 style={
-                    # "fontSize": "28px",
-                    "fontSize": "24px",
-                    "marginBottom": "10px"
+                    "height": "48px",
+                    "marginRight": "12px"
                 }
             ),
+            # html.Div("◆", style={
+            #     'fontSize': '18px',
+            #     'color': '#2B6CB0',
+            #     'marginRight': '8px'
+            # }),
 
-            html.H4(
-                title,
-                style={
-                    "color": "white",
-                    "fontWeight": "700",
-                    "marginBottom": "4px"
-                }
-            ),
+            html.Div([
+                html.Div("ONEX AI", style={
+                    'fontSize': '16px',
+                    'fontWeight': '800',
+                    'color': '#1A365D'
+                }),
+                html.Div("Data Insight Platform", style={
+                    'fontSize': '11px',
+                    'color': '#718096'
+                }),
+            ])
+        ], style={'display': 'flex', 'alignItems': 'center'}),
 
-            html.Div(
-                subtitle,
-                style={
-                    "color": "#C7D2FE",
-                    "fontSize": "14px"
-                }
+        #  CENTER NAV
+        html.Div(nav_links, style={
+            'display': 'flex',
+            'gap': '12px',
+            'alignItems': 'center'
+        }),
+
+        #  RIGHT USER + LOGOUT
+        html.Div([
+
+            html.Div([
+                html.Div(username, style={
+                    'fontSize': '13px',
+                    'fontWeight': '600',
+                    'color': '#1A365D'
+                }),
+                html.Div(role_name, style={
+                    'fontSize': '11px',
+                    'color': '#718096'
+                }),
+            ], style={'marginRight': '15px'}),
+
+            dbc.Button(
+                "Logout",
+                id='btn-logout',
+                color='danger',
+                size='sm'
             )
 
-        ]),
+        ], style={'display': 'flex', 'alignItems': 'center'})
 
-        style={
-            "background": "rgba(255,255,255,0.06)",
-            "border": "1px solid rgba(255,255,255,0.08)",
-            "borderRadius": "16px",
-            "height": "125px"
-            # "height": "150px"
-        }
-    )
-
-
-# ==========================================================
-# LEFT PANEL
-# ==========================================================
-
-def left_panel():
-
-    return html.Div(
-
-        [
-
-            html.Br(),
-
-            # html.Img(
-            #     src="/assets/onex_software_logo.png",
-            #     style={
-            #         "width": "220px",
-            #         "marginBottom": "40px"
-            #     }
-            # ),
-
-            html.H1(
-
-                "ONEX AI Data Insight Platform",
-                style={
-                    "color": "white",
-                    "fontSize": "42px",
-                    # "fontSize": "54px",
-                    "fontWeight": "700",
-                    "lineHeight": "1.15",
-                    "marginBottom": "18px"
-                    # "marginBottom": "25px"
-                }
-
-            ),
-
-            html.P(
-
-                "Leverage enterprise-grade AI to analyze datasets, build dashboards, generate KPIs and visualize business insights instantly.",
-
-                style={
-                    "color": TEXT_LIGHT,
-                    "fontSize": "17px",
-                    # "fontSize": "21px",
-                    # "lineHeight": "1.8",
-                    "lineHeight": "1.6",
-                    "marginBottom": "45px"
-                }
-
-            ),
-
-            dbc.Row(
-
-                [
-
-                    dbc.Col(
-
-                        feature_card(
-                            "🤖",
-                            "AI Insights",
-                            "Transform data into actionable intelligence"
-                        ),
-
-                        width=6
-                    ),
-
-                    dbc.Col(
-
-                        feature_card(
-                            "📊",
-                            "Dashboard",
-                            # "Generate insightful dashboards",
-                            "Auto-generated KPI & visualizations"
-                            
-                        ),
-
-                        width=6
-                    )
-
-                ],
-
-                className="mb-4"
-
-            ),
-
-            dbc.Row(
-
-                [
-
-                    dbc.Col(
-
-                        feature_card(
-                            "🔒",
-                            " Enterprise Security",
-                            "Role-based access control"
-                        ),
-
-                        width=6
-                    ),
-
-                    dbc.Col(
-
-                        feature_card(
-                            # "⚡",
-                            # "Fast",
-                            # "Instant Insights"
-                            "📁 ",
-                            "Multi-Source Data",
-                            " Excel, CSV & Database support"
-                        ),
-
-                        width=6
-                    )
-
-                ]
-
-            ),
-
-            html.Br(),
-
-            dbc.Badge(
-
-                # "●  System Online • All Services Running",
-                "●  Intelligent Analytics",
-                color="success",
-                pill=True,
-                style={
-                    "padding": "10px 20px",
-                    "fontSize": "15px",
-                    "fontWeight": "600"
-                    # "padding": "12px 18px",
-                    # "fontSize": "15px"
-                }
-            ),
-            style={
-                "display": "flex",
-                "justifyContent": "center",
-                "marginTop": "20px"
-            }
-
-        ],
-
-        style={
-
-            "background": f"linear-gradient(180deg,{PRIMARY_DARK}, {LEFT_BG})",
-            "minHeight": "100vh",
-            "padding": "40px 55px",
-            # "padding": "60px",
-            "display": "flex",
-            "flexDirection": "column",
-            "justifyContent": "center"
-
-        }
-
-    )
+    ], style={
+        'display': 'flex',
+        'justifyContent': 'space-between',
+        'alignItems': 'center',
+        'padding': '10px 20px',
+        'backgroundColor': '#F7FAFC',
+        'borderBottom': '1px solid #E2E8F0',
+        'boxShadow': '0 2px 6px rgba(0,0,0,0.05)'
+    })
