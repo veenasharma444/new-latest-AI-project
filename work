@@ -12,8 +12,8 @@ class OllamaProvider(LLMProvider):
     def __init__(
         self,
         base_url: str = "https://litellm.osourceglobal.com/v1",
-        model: str = "qwen3.6:35b-a3b",
-        api_key: str = "YOUR_API_KEY"
+        model: str = "local-qwen3.6:35b-a3b",
+        api_key: str = ""
     ):
         self.base_url = base_url.rstrip("/")
         self.model = model
