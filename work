@@ -1,151 +1,44 @@
-def header(username="Administrator", role="Admin", active="home"):
+URL and key for litellm (only for testing purpose)
 
-    return html.Div(
+Base URL: https://litellm.osourceglobal.com:/v1
+key: sk-6A6m0Q1jvBS3pIXpEPVNzA (only for testing)
+Models : qwen3.6:35b-a3b , qwen2.5-14b 
 
-        [
+PFA the sample to call this in python.
 
-            # =======================
-            # LEFT : LOGO
-            # =======================
-            html.Div(
+async def _call_ollama(prompt: str, model: Optional[str] = None) -> str:
+    """Stream from Ollama and return the full response string with timing logs."""
 
-                [
+    payload = {
+        "model": "qwen3.6:35b-a3b",
+        "messages": [
+            {"role": "user", "content": prompt}
+        ],
+        "stream": True
+    }
 
-                    html.Img(
-                        src="/assets/onex_software_logo.png",
-                        style={
-                            "height": "58px",
-                            "marginRight": "16px"
-                        }
-                    ),
+    print(f"[DEBUG] Payload: {payload}")
 
-                    html.Div(
+    full_response: list[str] = []
 
-                        [
+    headers = {
+    "Content-Type": "application/json",
+    "api-key": OLLAMA_API_KEY # Pass your key here,
+}
 
-                            html.H3(
-                                "Onex AI Data Insight Platform",
-                                style={
-                                    "margin": 0,
-                                    "fontWeight": "700",
-                                    "fontSize": "28px",
-                                    "color": TEXT
-                                }
-                            ),
+    # ---- Timing markers ----
+    start_time = time.perf_counter()
+    first_token_time = None
+    chunk_count = 0
 
-                            html.Div(
-                                "Administration Console",
-                                style={
-                                    "color": TEXT_LIGHT,
-                                    "fontSize": "13px"
-                                }
-                            )
+    try:
+        async with httpx.AsyncClient(timeout=600.0) as client:
+            request_start = time.perf_counter()
 
-                        ]
-
-                    )
-
-                ],
-
-                style={
-                    "display": "flex",
-                    "alignItems": "center"
-                }
-
-            ),
-
-            # =======================
-            # CENTER : NAVIGATION
-            # =======================
-            html.Div(
-
-                [
-
-                    nav_item("Home", "/admin", active == "home"),
-                    nav_item("Users", "/users", active == "users"),
-                    nav_item("Companies", "/companies", active == "companies"),
-                    nav_item("Mapping", "/mapping", active == "mapping"),
-                    nav_item("Portal", "/portal", active == "portal"),
-
-                ],
-
-                style={
-                    "display": "flex",
-                    "justifyContent": "center",
-                    "alignItems": "center",
-                    "flex": "1"
-                }
-
-            ),
-
-            # =======================
-            # RIGHT : USER
-            # =======================
-            html.Div(
-
-                [
-
-                    html.Div(
-
-                        [
-
-                            html.Div(
-                                username,
-                                style={
-                                    "fontWeight": "700",
-                                    "fontSize": "15px"
-                                }
-                            ),
-
-                            html.Div(
-                                role,
-                                style={
-                                    "fontSize": "13px",
-                                    "color": TEXT_LIGHT
-                                }
-                            )
-
-                        ],
-
-                        style={
-                            "textAlign": "right",
-                            "marginRight": "18px"
-                        }
-
-                    ),
-
-                    dbc.Button(
-                        "Logout",
-                        id="btn-admin-logout",
-                        color="danger",
-                        outline=True,
-                        size="sm",
-                        style={
-                            "borderRadius": "10px",
-                            "padding": "8px 18px"
-                        }
-                    )
-
-                ],
-
-                style={
-                    "display": "flex",
-                    "alignItems": "center"
-                }
-
+            async with client.stream(
+                "POST",
+                f"{OLLAMA_BASE_URL}/chat/completions", # DONT FORGET TO ADD THIS 
+                json=payload,
+                headers=headers
             )
 
-        ],
-
-        style={
-
-            "display": "flex",
-            "justifyContent": "space-between",
-            "alignItems": "center",
-            "padding": "18px 32px",
-            "background": WHITE,
-            "borderBottom": f"1px solid {BORDER}"
-
-        }
-
-    )
