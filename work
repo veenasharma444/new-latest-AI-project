@@ -1,44 +1,177 @@
-URL and key for litellm (only for testing purpose)
+import dash
+from dash import Input, Output, State
+from dash import html
+from dash.exceptions import PreventUpdate
+import dash_bootstrap_components as dbc
+from core.auth import (register_user, get_all_users, update_user)
 
-Base URL: https://litellm.osourceglobal.com:/v1
-key: sk-bOcB-0pSa_R2dKmsoCQjDQ  
-Models : local-qwen3.6:35b-a3b
 
-PFA the sample to call this in python.
 
-async def _call_ollama(prompt: str, model: Optional[str] = None) -> str:
-    """Stream from Ollama and return the full response string with timing logs."""
+def build_user_rows(users):
 
-    payload = {
-        "model": "qwen3.6:35b-a3b",
-        "messages": [
-            {"role": "user", "content": prompt}
-        ],
-        "stream": True
-    }
+    children = []
 
-    print(f"[DEBUG] Payload: {payload}")
+    for user in users:
 
-    full_response: list[str] = []
+        children.append(
 
-    headers = {
-    "Content-Type": "application/json",
-    "api-key": OLLAMA_API_KEY # Pass your key here,
-}
+            html.Tr(
 
-    # ---- Timing markers ----
-    start_time = time.perf_counter()
-    first_token_time = None
-    chunk_count = 0
+                [
 
-    try:
-        async with httpx.AsyncClient(timeout=600.0) as client:
-            request_start = time.perf_counter()
+                    html.Td(
+                        html.Button(
+                            "✏️",
+                            id={
+                                "type": "edit-user",
+                                "index": user["user_id"]
+                            },
+                            className="btn btn-link edit-btn"
+                        )
+                    ),
 
-            async with client.stream(
-                "POST",
-                f"{OLLAMA_BASE_URL}/chat/completions", # DONT FORGET TO ADD THIS 
-                json=payload,
-                headers=headers
+                    html.Td(user["username"]),
+
+                    html.Td(
+                        dbc.Badge(
+                            user["role"],
+                            color="primary",
+                            pill=True
+                        )
+                    ),
+
+                    html.Td(
+                        dbc.Switch(
+                            id={
+                                "type": "toggle-user",
+                                "index": user["user_id"]
+                            },
+                            value=user["is_active"]
+                        )
+                    )
+
+                ]
+
             )
 
+        )
+
+    return children
+
+
+def register_users_callbacks(app):
+
+    @app.callback(
+        Output("users-list", "children"),
+        Input("url", "pathname")
+    )
+    
+    def load_users(pathname):
+
+        if pathname != "/users":
+            raise PreventUpdate
+        
+        users = get_all_users()
+        children = []
+        for user in users:
+
+            children.append(
+                    html.Tr(
+                        [
+
+                            html.Td(
+                                html.Button(
+                                    "✏️",
+                                    id={
+                                        "type": "edit-user",
+                                        "index": user["user_id"]
+                                    },
+                                    className="btn btn-link edit-btn"
+                                )
+                            ),
+
+                            html.Td(user["username"]),
+
+                            html.Td(
+                                dbc.Badge(
+                                    user["role"],
+                                    color="primary",
+                                    pill=True
+                                )
+                            ),
+
+                            html.Td(
+                                dbc.Switch(
+                                    id={
+                                        "type": "toggle-user",
+                                        "index": user["user_id"]
+                                    },
+                                    value=user["is_active"]
+                                )
+                            )
+
+                        ]
+                    )
+                )
+        return build_user_rows(users)
+ @app.callback(
+
+        Output("create-user-msg", "children"),
+        Output("users-list", "children", allow_duplicate=True),
+        Input("btn-save-user", "n_clicks"),
+        State("selected-user-id", "data"),
+        State("user-username", "value"),
+        State("user-password", "value"),
+        State("user-role", "value"),
+        prevent_initial_call=True
+
+    )
+# Create callback
+    def save_user(n, selected_user_id, username, password, role):
+
+        if not n:
+            raise PreventUpdate
+
+        # ---------------- UPDATE ----------------
+        if selected_user_id:
+
+            result = update_user(
+                selected_user_id,
+                username,
+                password,
+                role
+            )
+
+            success_msg = "User updated successfully"
+
+        # ---------------- CREATE ----------------
+        else:
+
+            result = register_user(
+                username=username,
+                email=f"{username}@company.com",
+                name=username,
+                password=password,
+                role_id=role
+            )
+
+            success_msg = "User created successfully"
+
+        if not result["success"]:
+            return dbc.Alert(result["message"], color="danger"), dash.no_update
+
+        users = get_all_users()
+        rows = []
+        for user in users:
+            rows.append({
+
+                "user_id": user["user_id"],
+                "action": "✏️",
+                "username": user["username"],
+                "role": user["role"],
+                "status": "🟢 ON" if user["is_active"] else "⚪ OFF",
+                "is_active": user["is_active"]
+
+            })
+
+        return dbc.Alert(success_msg, color="success"), build_user_rows(users)
