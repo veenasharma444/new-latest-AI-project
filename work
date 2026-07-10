@@ -1,496 +1,121 @@
 from dash import html, dcc
 import dash_bootstrap_components as dbc
+from components.admin_layout import admin_layout
 
 
-# ==========================
-# COLORS
-# ==========================
+CARD_STYLE = {
+    "backgroundColor": "white",
+    "border": "1px solid #E5E7EB",
+    "borderRadius": "16px",
+    "padding": "32px",
+    "height": "210px",
+    "cursor": "pointer",
+    "boxShadow": "0 3px 10px rgba(0,0,0,.08)",
+    "transition": "all .2s ease"
+}
 
-PRIMARY = "#4F46E5"
-SECONDARY = "#312E81"
-DARK = "#1E1B4B"
-WHITE = "#FFFFFF"
-TEXT = "#475569"
 
+def admin_card(icon, title, description, href):
 
-# ==========================
-# FEATURE CARD
-# ==========================
+    return dbc.Col(
 
-def feature_card(icon, title, subtitle):
+        dcc.Link(
+            dbc.Card(
+                dbc.CardBody(
+                    [
+                        html.Div(
+                            icon,
+                            style={
+                                "fontSize": "46px",
+                                "marginBottom": "18px"
+                            }
+                        ),
+                        html.H4(
+                            title,
+                            style={
+                                "fontWeight": "700",
+                                "marginBottom": "10px"
+                            }
+                        ),
 
-    return dbc.Card(
-
-        dbc.CardBody(
-
-            [
-
-                html.Div(
-
-                    icon,
-
-                    style={
-                        "fontSize": "28px",
-                        "marginBottom": "12px"
-                    }
-
+                        html.P(
+                            description,
+                            style={
+                                "color": "#6B7280",
+                                "fontSize": "15px"
+                            }
+                        )
+                    ]
                 ),
+                style=CARD_STYLE
+            ),
 
-                html.H5(
-
-                    title,
-
-                    style={
-                        "color": "white",
-                        "fontWeight": "600"
-                    }
-
-                ),
-
-                html.P(
-
-                    subtitle,
-
-                    style={
-                        "color": "#CBD5E1",
-                        "fontSize": "14px"
-                    }
-
-                )
-
-            ]
+            href=href,
+            style={
+                "textDecoration": "none",
+                "color": "inherit"
+            }
 
         ),
 
-        style={
-
-            "background": "rgba(255,255,255,.05)",
-
-            "border": "1px solid rgba(255,255,255,.12)",
-
-            "borderRadius": "16px",
-
-            "height": "170px"
-
-        }
+        lg=6,
+        xl=3,
+        md=6,
+        sm=12,
+        className="mb-4"
 
     )
 
 
-# ==========================
-# LEFT PANEL
-# ==========================
-
-def left_panel():
-
-    return html.Div(
-
-        [
-
-            # Logo
-            html.Img(
-
-                src="/assets/onex_software_logo.png",
-
-                style={
-                    "width": "220px",
-                    "marginBottom": "45px"
-                }
-
-            ),
-
-            html.H1(
-
-                "Administrator Portal",
-
-                style={
-                    "color": "white",
-                    "fontWeight": "700",
-                    "fontSize": "46px",
-                    "lineHeight": "58px",
-                    "marginBottom": "20px"
-                }
-
-            ),
-
-            html.P(
-
-                "Manage users, companies, permissions and platform configuration from one secure administration console.",
-
-                style={
-                    "color": "#CBD5E1",
-                    "fontSize": "18px",
-                    "lineHeight": "34px",
-                    "marginBottom": "45px",
-                    "maxWidth": "520px"
-                }
-
-            ),
-
-            dbc.Row(
-
-                [
-
-                    dbc.Col(
-
-                        feature_card(
-                            "👤",
-                            "Users",
-                            "Create and manage users"
-                        ),
-
-                        width=6
-
-                    ),
-
-                    dbc.Col(
-
-                        feature_card(
-                            "🏢",
-                            "Companies",
-                            "Manage company master"
-                        ),
-
-                        width=6
-
-                    )
-
-                ],
-
-                className="g-4"
-
-            ),
-
-            html.Br(),
-
-            dbc.Row(
-
-                [
-
-                    dbc.Col(
-
-                        feature_card(
-                            "🔗",
-                            "Mapping",
-                            "Assign companies to users"
-                        ),
-
-                        width=6
-
-                    ),
-
-                    dbc.Col(
-
-                        feature_card(
-                            "🛡️",
-                            "Security",
-                            "Role based access control"
-                        ),
-
-                        width=6
-
-                    )
-
-                ],
-
-                className="g-4"
-
-            ),
-
-            html.Div(
-
-                [
-
-                    html.Div(
-
-                        style={
-                            "width": "12px",
-                            "height": "12px",
-                            "background": "#22C55E",
-                            "borderRadius": "50%",
-                            "marginRight": "10px"
-                        }
-
-                    ),
-
-                    html.Span(
-
-                        "Secure Administrator Access",
-
-                        style={
-                            "color": "#22C55E",
-                            "fontWeight": "600",
-                            "fontSize": "16px"
-                        }
-
-                    )
-
-                ],
-
-                style={
-
-                    "display": "flex",
-
-                    "alignItems": "center",
-
-                    "marginTop": "45px"
-
-                }
-
-            )
-
-        ],
-
-        style={
-
-            "height": "100vh",
-
-            "padding": "70px",
-
-            "background":
-                "linear-gradient(135deg,#4338CA,#1E1B4B)",
-
-            "display": "flex",
-
-            "flexDirection": "column",
-
-            "justifyContent": "center"
-
-        }
+def layout(session_data=None):
+
+    body = [
+        html.P(
+            "Welcome to the administration console. Select a module below.",
+            style={
+                "color": "#6B7280",
+                "fontSize": "16px",
+                "marginBottom": "35px"
+            }
+        ),
+
+        dbc.Row(
+            [
+                admin_card(
+                    "👤",
+                    "Users",
+                    "Create and manage users.",
+                    "/users"
+                ),
+
+                admin_card(
+                    "🏢",
+                    "Companies",
+                    "Create and manage companies.",
+                    "/companies"
+                ),
+
+                admin_card(
+                    "🔗",
+                    "Mapping",
+                    "Assign companies to users.",
+                    "/mapping"
+                ),
+
+                admin_card(
+                    "🌐",
+                    "Portal",
+                    "Open company workspace.",
+                    "/portal"
+                )
+            ],
+            className="g-4"
+        )
+    ]
+
+    return admin_layout(
+        title="Admin Dashboard",
+        body=body,
+        active="home",
+        session_data=session_data
     )
-    
-
-# ==========================
-# RIGHT PANEL
-# ==========================
-
-def right_panel():
-
-    return html.Div(
-
-        [
-
-            html.Div(
-
-                [
-
-                    html.Img(
-
-                        src="/assets/onex_software_logo.png",
-
-                        style={
-                            "width": "210px",
-                            "marginBottom": "35px"
-                        }
-
-                    ),
-
-                    html.H2(
-
-                        "Administrator Login",
-
-                        style={
-                            "fontSize": "36px",
-                            "fontWeight": "700",
-                            "color": "#1F2937",
-                            "marginBottom": "10px"
-                        }
-
-                    ),
-
-                    html.P(
-
-                        "Sign in to manage users, companies and platform settings.",
-
-                        style={
-                            "color": "#6B7280",
-                            "fontSize": "16px",
-                            "marginBottom": "35px"
-                        }
-
-                    ),
-
-                    # -----------------------
-                    # Username
-                    # -----------------------
-
-                    dbc.Label(
-
-                        "Username",
-
-                        className="fw-semibold"
-
-                    ),
-
-                    dbc.Input(
-
-                        id="auth-admin-username",
-
-                        type="text",
-
-                        placeholder="Enter administrator username",
-
-                        className="login-input",
-
-                        style={
-                            "height": "52px",
-                            "borderRadius": "12px",
-                            "marginBottom": "20px"
-                        }
-
-                    ),
-
-                    # -----------------------
-                    # Password
-                    # -----------------------
-
-                    dbc.Label(
-
-                        "Password",
-
-                        className="fw-semibold"
-
-                    ),
-
-                    dbc.Input(
-
-                        id="auth-admin-password",
-
-                        type="password",
-
-                        placeholder="Enter password",
-
-                        className="login-input",
-
-                        style={
-                            "height": "52px",
-                            "borderRadius": "12px",
-                            "marginBottom": "20px"
-                        }
-
-                    ),
-
-                    # -----------------------
-                    # Message
-                    # -----------------------
-
-                    html.Div(
-                        id="auth-message-container",
-                        style={
-                            "marginBottom": "20px"
-                        }
-                    ),
-
-                    # -----------------------
-                    # Sign In Button
-                    # -----------------------
-
-                    dbc.Button(
-                        "Administrator Sign In",
-                        id="auth-btn-admin-login",
-                        color="primary",
-                        style={
-                            "width": "100%",
-                            "height": "54px",
-                            "fontWeight": "700",
-                            "fontSize": "16px",
-                            "borderRadius": "12px",
-                            "backgroundColor": "#4338CA",
-                            "border": "none"
-                        }
-
-                    ),
-
-                    html.Div(
-
-                        "────────── OR ──────────",
-
-                        style={
-                            "textAlign": "center",
-                            "marginTop": "28px",
-                            "marginBottom": "20px",
-                            "color": "#94A3B8",
-                            "fontWeight": "600"
-                        }
-
-                    ),
-
-                    dbc.Button(
-                        "← Back to User Login",
-                        href="/login",
-                        outline=True,
-                        color="secondary",
-                        style={
-                            "width": "100%",
-                            "height": "50px",
-                            "borderRadius": "12px",
-                            "fontWeight": "600"
-                        }
-                    )
-                ],
-
-                style={
-                    "width": "430px"
-                }
-
-            )
-
-        ],
-
-        style={
-
-            "height": "100vh",
-            "display": "flex",
-            "justifyContent": "center",
-            "alignItems": "center",
-            "backgroundColor": "#F8FAFC"
-
-        }
-
-    )
-
-# ==========================
-# ADMIN LOGIN PAGE
-# ==========================
-
-def generate_admin_login_page():
-
-    return dbc.Container(
-
-        [
-            dcc.Store(
-                id="admin-session-store"
-            ),
-            dbc.Row(
-                [
-                    dbc.Col(
-                        left_panel(),
-                        md=7,
-                        style={
-                            "padding": "0"
-                        }
-                    ),
-                    dbc.Col(
-                        right_panel(),
-                        md=5,
-                        style={
-                            "padding": "0"
-                        }
-                    )
-                ],
-                className="g-0",
-                style={
-                    "height": "100vh"
-                }
-            )
-        ],
-        fluid=True,
-
-        style={
-            "padding": "0",
-            "margin": "0",
-            "overflow": "hidden",
-            "backgroundColor": "#F8FAFC"
-        }
-    )
-    
