@@ -97,21 +97,13 @@ def header(username="Administrator", role="Admin"):
                             html.Div(
 
                                 "Administration Console",
-
                                 style={
-
                                     "color": TEXT_LIGHT,
-
                                     "fontSize": "14px"
-
                                 }
-
                             )
-
                         ]
-
                     )
-
                 ],
 
                 style={
@@ -135,91 +127,49 @@ def header(username="Administrator", role="Admin"):
                             html.Div(
 
                                 username,
-
                                 style={
-
                                     "fontWeight": "700",
-
                                     "fontSize": "15px"
-
                                 }
-
                             ),
-
                             html.Div(
-
                                 role,
-
                                 style={
-
                                     "fontSize": "13px",
-
                                     "color": TEXT_LIGHT
-
                                 }
-
                             )
-
                         ],
-
                         style={
-
                             "textAlign": "right",
-
                             "marginRight": "20px"
-
                         }
-
                     ),
-
                     dbc.Button(
-
                         "Logout",
-
                         id="btn-admin-logout",
-
                         color="danger",
-
                         outline=True,
-
                         size="sm",
-
                         style={
-
                             "borderRadius": "10px",
-
                             "padding": "8px 20px"
-
                         }
-
                     )
-
                 ],
 
                 style={
-
                     "display": "flex",
-
                     "alignItems": "center"
-
                 }
-
             )
-
         ],
-
         style={
-
             "display": "flex",
-
             "justifyContent": "space-between",
-
             "alignItems": "center",
-
             "padding": "22px 42px",
-
             "background": WHITE,
-
             "borderBottom": f"1px solid {BORDER}"
 
         }
