@@ -1,8 +1,8 @@
 URL and key for litellm (only for testing purpose)
 
 Base URL: https://litellm.osourceglobal.com:/v1
-key: sk-6A6m0Q1jvBS3pIXpEPVNzA (only for testing)
-Models : qwen3.6:35b-a3b , qwen2.5-14b 
+key: sk-bOcB-0pSa_R2dKmsoCQjDQ  
+Models : local-qwen3.6:35b-a3b
 
 PFA the sample to call this in python.
 
