@@ -1,1 +1,20 @@
+body = [
 
+    html.H2(
+        f"Welcome, {username} 👋",
+        style={
+            "fontSize": "36px",
+            "fontWeight": "700",
+            "color": "#111827",
+            "marginBottom": "8px"
+        }
+    ),
+
+    html.P(
+        "Manage users, companies, mappings and company workspaces from one place.",
+        style={
+            "color": "#6B7280",
+            "fontSize": "16px",
+            "marginBottom": "35px"
+        }
+    ),
