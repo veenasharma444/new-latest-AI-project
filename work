@@ -1,1 +1,24 @@
 
+/* Dash 4 dropdown fix */
+
+.dash-dropdown {
+    position: relative;
+    z-index: 9999;
+}
+
+.dash-dropdown-grid {
+    z-index: 9999 !important;
+}
+
+.dash-dropdown-grid-container {
+    z-index: 9999 !important;
+}
+
+.dash-dropdown-menu {
+    z-index: 99999 !important;
+}
+
+/* Cards should not cover the dropdown */
+.card {
+    position: relative;
+}
